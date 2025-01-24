@@ -5630,8 +5630,7 @@ Resources:
                     def create_certificate(acm, r53, props):
                         cert = acm.request_certificate(
                             DomainName=f"dashboard.{props['DomainName']}",
-                            ValidationMethod='DNS',
-                            SubjectAlternativeNames=[],
+                            ValidationMethod='DNS'
                         )
                         
                         waiter = acm.get_waiter('certificate_validated')
