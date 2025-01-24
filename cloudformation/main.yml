@@ -5448,7 +5448,7 @@ Resources:
               Value: !Ref 'LambdaLayerCreatorResource'
             Type: AWS::SSM::Parameter
     Type: AWS::CloudFormation::StackSet
-  DashboardStackSet:
+DashboardStackSet:
     DependsOn:
       - StackSetExecutionRole
       - StackSetAdministrationRole
@@ -5531,120 +5531,199 @@ Resources:
           IsPrimaryRegion: !Equals
             - !Ref 'PrimaryRegionName'
             - !Ref 'AWS::Region'
-        Metadata:
-          AWS::CloudFormation::Interface:
-            ParameterGroups: []
-            ParameterLabels: {}
-          Comments: ''
-          CreatedBy: Carter Meyers (AWS)
-          Description: This application deploys a Global RDS Aurora cluster.
-          LastUpdated: September 25, 2024
-          Version: v2.11
-        Outputs:
-          CustomCloudFrontCdnFqdnExport:
-            Export:
-              Name: !Join
-                - ''
-                - - !Ref 'MainStackName'
-                  - -CustomCloudFrontDashboardEndpoint
-            Value: !Join
-              - .
-              - - dashboard
-                - !Ref 'PublicFqdn'
-          DefaultCloudFrontCdnFqdnExport:
-            Export:
-              Name: !Join
-                - ''
-                - - !Ref 'MainStackName'
-                  - -DefaultCloudFrontDashboardEndpoint
-            Value: !GetAtt 'CloudFrontDistribution.DomainName'
         Parameters:
           CodeDownloadUrl:
             Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
-            Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
+            Description: The URL from which the supporting codebase can be downloaded.
             Type: String
           DatabaseAdminPassword:
-            Description: The password to be used for the RDS Aurora admin account.
+            Description: The password for the RDS Aurora admin account.
             NoEcho: true
             Type: String
           DatabaseAdminUsername:
-            Description: The username to be used for the RDS Aurora admin account.
+            Description: The username for the RDS Aurora admin account.
             Type: String
           FailoverDatabaseSubnetZoneACidr:
             Default: 10.10.10.0/24
-            Description: The CIDR range you wish to use for your primary database subnet.
             Type: String
           FailoverDatabaseSubnetZoneBCidr:
             Default: 10.10.13.0/24
-            Description: The CIDR range you wish to use for your failover database subnet.
             Type: String
           FailoverPrivateSubnetZoneACidr:
             Default: 10.10.9.0/24
-            Description: The CIDR range you wish to use for your primary private subnet.
             Type: String
           FailoverPrivateSubnetZoneBCidr:
             Default: 10.10.12.0/24
-            Description: The CIDR range you wish to use for your failover private subnet.
             Type: String
           FailoverPublicSubnetZoneACidr:
             Default: 10.10.8.0/24
-            Description: The CIDR range you wish to use for your primary public subnet.
             Type: String
           FailoverPublicSubnetZoneBCidr:
             Default: 10.10.11.0/24
-            Description: The CIDR range you wish to use for your failover public subnet.
             Type: String
           FailoverRegionName:
             Default: us-east-2
-            Description: The name of the failover region (e.g., us-east-1). You may choose any AWS Region that supports the required services. The primary and failover regions must be different.
             Type: String
           FailoverVpcCidr:
             Default: 10.10.8.0/21
-            Description: The CIDR range you wish to use for your VPC.
             Type: String
           MainStackName:
             Type: String
           PrimaryDatabaseSubnetZoneACidr:
             Default: 10.10.2.0/24
-            Description: The CIDR range you wish to use for your primary database subnet.
             Type: String
           PrimaryDatabaseSubnetZoneBCidr:
             Default: 10.10.5.0/24
-            Description: The CIDR range you wish to use for your failover database subnet.
             Type: String
           PrimaryPrivateSubnetZoneACidr:
             Default: 10.10.1.0/24
-            Description: The CIDR range you wish to use for your primary private subnet.
             Type: String
           PrimaryPrivateSubnetZoneBCidr:
             Default: 10.10.4.0/24
-            Description: The CIDR range you wish to use for your failover private subnet.
             Type: String
           PrimaryPublicSubnetZoneACidr:
             Default: 10.10.0.0/24
-            Description: The CIDR range you wish to use for your primary public subnet.
             Type: String
           PrimaryPublicSubnetZoneBCidr:
             Default: 10.10.3.0/24
-            Description: The CIDR range you wish to use for your failover public subnet.
             Type: String
           PrimaryRegionName:
             Default: us-east-1
-            Description: The name of the primary region (e.g., us-east-1). You may choose any AWS Region that supports the required services. The primary and failover regions must be different.
             Type: String
           PrimaryVpcCidr:
             Default: 10.10.0.0/21
-            Description: The CIDR range you wish to use for your VPC.
             Type: String
           PublicFqdn:
-            Description: >-
-              The FQDN to be used by this application (e.g., multi-region-aurora.example.com). An Amazon ACM Certificate will be issued for this FQDN and attached to an Amazon ALB. This FQDN should NOT have a DNS
-              record currently defined in the corresponding Route 53 Hosted Zone.
+            Description: The FQDN for this application
             Type: String
           PublicHostedZoneId:
-            Description: The ID of the public Route 53 Hosted Zone corresponding to the public Service FQDN.
+            Description: The ID of the public Route 53 Hosted Zone
             Type: String
+
         Resources:
+          GlobalAcmCertificateFunction:
+            Properties:
+              Code:
+                ZipFile: |
+                  import boto3
+                  import cfnresponse
+                  import time
+
+                  def handler(event, context):
+                      props = event['ResourceProperties']
+                      acm = boto3.client('acm', region_name='us-east-1')
+                      r53 = boto3.client('route53')
+                      
+                      try:
+                          if event['RequestType'] in ['Create', 'Update']:
+                              cert_arn = create_certificate(acm, r53, props)
+                              cfnresponse.send(event, context, cfnresponse.SUCCESS, 
+                                  {'Arn': cert_arn})
+                          elif event['RequestType'] == 'Delete':
+                              if 'PhysicalResourceId' in event:
+                                  acm.delete_certificate(CertificateArn=event['PhysicalResourceId'])
+                              cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+                      except Exception as e:
+                          print(f"Error: {str(e)}")
+                          cfnresponse.send(event, context, cfnresponse.FAILED, {})
+
+                  def create_certificate(acm, r53, props):
+                      cert = acm.request_certificate(
+                          DomainName=f"dashboard.{props['DomainName']}",
+                          ValidationMethod='DNS',
+                          SubjectAlternativeNames=[],
+                      )
+                      
+                      waiter = acm.get_waiter('certificate_validated')
+                      for _ in range(30):
+                          try:
+                              cert_metadata = acm.describe_certificate(
+                                  CertificateArn=cert['CertificateArn'])
+                              if 'DomainValidationOptions' in cert_metadata['Certificate']:
+                                  break
+                              time.sleep(2)
+                          except:
+                              time.sleep(2)
+                      
+                      for validation in cert_metadata['Certificate']['DomainValidationOptions']:
+                          if validation['ValidationMethod'] == 'DNS':
+                              r53.change_resource_record_sets(
+                                  HostedZoneId=props['HostedZoneId'],
+                                  ChangeBatch={
+                                      'Changes': [{
+                                          'Action': 'UPSERT',
+                                          'ResourceRecordSet': {
+                                              'Name': validation['ResourceRecord']['Name'],
+                                              'Type': validation['ResourceRecord']['Type'],
+                                              'TTL': 300,
+                                              'ResourceRecords': [{
+                                                  'Value': validation['ResourceRecord']['Value']
+                                              }]
+                                          }
+                                      }]
+                                  }
+                              )
+                      
+                      waiter.wait(
+                          CertificateArn=cert['CertificateArn'],
+                          WaiterConfig={'Delay': 5, 'MaxAttempts': 60}
+                      )
+                      
+                      return cert['CertificateArn']
+
+              Handler: index.handler
+              Role: !GetAtt 'GlobalAcmCertificateFunctionRole.Arn'
+              Runtime: python3.11
+              Timeout: 900
+            Type: AWS::Lambda::Function
+
+          GlobalAcmCertificateFunctionRole:
+            Properties:
+              AssumeRolePolicyDocument:
+                Statement:
+                  - Action: sts:AssumeRole
+                    Effect: Allow
+                    Principal:
+                      Service: lambda.amazonaws.com
+                Version: '2012-10-17'
+              ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+              Policies:
+                - PolicyDocument:
+                    Statement:
+                      - Action:
+                          - acm:RequestCertificate
+                          - acm:DescribeCertificate
+                          - acm:DeleteCertificate
+                          - route53:ChangeResourceRecordSets
+                        Effect: Allow
+                        Resource: '*'
+                    Version: '2012-10-17'
+                  PolicyName: acm-cert-management
+            Type: AWS::IAM::Role
+
+          GlobalAcmCertificate:
+            Properties:
+              ServiceToken: !GetAtt 'GlobalAcmCertificateFunction.Arn'
+              DomainName: !Ref 'PublicFqdn'
+              HostedZoneId: !Ref 'PublicHostedZoneId'
+            Type: Custom::GlobalAcmCertificate
+
+          TlsCertificate:
+            Properties:
+              DomainName: !Join
+                - .
+                - - dashboard
+                  - !Ref 'PublicFqdn'
+              DomainValidationOptions:
+                - DomainName: !Join
+                    - .
+                    - - dashboard
+                      - !Ref 'PublicFqdn'
+                  HostedZoneId: !Ref 'PublicHostedZoneId'
+              ValidationMethod: DNS
+            Type: AWS::CertificateManager::Certificate
+
           Bucket:
             Properties:
               AccessControl: Private
@@ -5660,6 +5739,7 @@ Resources:
               VersioningConfiguration:
                 Status: Suspended
             Type: AWS::S3::Bucket
+
           BucketPolicy:
             DependsOn:
               - Bucket
@@ -5691,7 +5771,7 @@ Resources:
             Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
           CloudFrontDistribution:
             DependsOn:
-              - TlsCertificate
+              - GlobalAcmCertificate
               - ResponseHeadersPolicy
               - CloudFrontAccessIdentity
             Properties:
@@ -5725,7 +5805,7 @@ Resources:
                         - - origin-access-identity/cloudfront/
                           - !Ref 'CloudFrontAccessIdentity'
                 ViewerCertificate:
-                  AcmCertificateArn: !Ref 'TlsCertificate'
+                  AcmCertificateArn: !GetAtt 'GlobalAcmCertificate.Arn'
                   MinimumProtocolVersion: TLSv1.1_2016
                   SslSupportMethod: sni-only
             Type: AWS::CloudFront::Distribution
