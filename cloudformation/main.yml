@@ -124,7 +124,7 @@ Outputs:
             - !Ref 'FailoverRegionName'
 Parameters:
   CodeDownloadUrl:
-    Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+    Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
     Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
     Type: String
   DatabaseAdminPassword:
@@ -342,7 +342,7 @@ Resources:
             Value: !GetAtt 'DomainName.RegionalDomainName'
         Parameters:
           CodeDownloadUrl:
-            Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
             Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
             Type: String
           DatabaseAdminPassword:
@@ -625,7 +625,7 @@ Resources:
             Value: !GetAtt 'Api.RootResourceId'
         Parameters:
           CodeDownloadUrl:
-            Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
             Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
             Type: String
           DatabaseAdminPassword:
@@ -873,7 +873,7 @@ Resources:
           Version: v2.11
         Parameters:
           CodeDownloadUrl:
-            Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
             Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
             Type: String
           DatabaseAdminPassword:
@@ -2006,7 +2006,7 @@ Resources:
           Version: v2.11
         Parameters:
           CodeDownloadUrl:
-            Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
             Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
             Type: String
           DatabaseAdminPassword:
@@ -3128,7 +3128,7 @@ Resources:
           Version: v2.11
         Parameters:
           CodeDownloadUrl:
-            Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
             Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
             Type: String
           DatabaseAdminPassword:
@@ -4360,7 +4360,7 @@ Resources:
           Version: v2.11
         Parameters:
           CodeDownloadUrl:
-            Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
             Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
             Type: String
           DatabaseAdminPassword:
@@ -5045,7 +5045,7 @@ Resources:
             Value: !Ref 'LambdaLayerCreatorResource'
         Parameters:
           CodeDownloadUrl:
-            Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
             Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
             Type: String
           DatabaseAdminPassword:
@@ -5560,7 +5560,7 @@ Resources:
             Value: !GetAtt 'CloudFrontDistribution.DomainName'
         Parameters:
           CodeDownloadUrl:
-            Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
             Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
             Type: String
           DatabaseAdminPassword:
@@ -6065,7 +6065,7 @@ Resources:
               - !GetAtt 'KMSKeyReplica.Arn'
         Parameters:
           CodeDownloadUrl:
-            Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
             Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
             Type: String
           DatabaseAdminPassword:
@@ -6473,7 +6473,7 @@ Resources:
               EnableIAMDatabaseAuthentication: false
               Engine: aurora-postgresql
               EngineMode: provisioned
-              EngineVersion: '13.7'
+              EngineVersion: '13.18'
               GlobalClusterIdentifier: !GetAtt 'PrimaryRegionDbExportRetriever.GlobalAppDbClusterIdentifier'
               KmsKeyId: !If
                 - IsPrimaryRegion
@@ -7065,7 +7065,7 @@ Resources:
           Version: v2.11
         Parameters:
           CodeDownloadUrl:
-            Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
             Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
             Type: String
           DatabaseAdminPassword:
@@ -7976,7 +7976,7 @@ Resources:
             Value: !Ref 'Vpc'
         Parameters:
           CodeDownloadUrl:
-            Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
             Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
             Type: String
           DatabaseAdminPassword:
@@ -8834,7 +8834,7 @@ Resources:
               - !GetAtt 'KMSKeyReplica.Arn'
         Parameters:
           CodeDownloadUrl:
-            Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
             Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
             Type: String
           DatabaseAdminPassword:
@@ -9485,7 +9485,7 @@ Resources:
               EnableIAMDatabaseAuthentication: false
               Engine: aurora-postgresql
               EngineMode: provisioned
-              EngineVersion: '13.7'
+              EngineVersion: '13.18'
               KmsKeyId: !If
                 - IsPrimaryRegion
                 - !Ref 'KMSKey'
@@ -9543,7 +9543,7 @@ Resources:
               EnableIAMDatabaseAuthentication: false
               Engine: aurora-postgresql
               EngineMode: provisioned
-              EngineVersion: '13.7'
+              EngineVersion: '13.18'
               KmsKeyId: !If
                 - IsPrimaryRegion
                 - !Ref 'KMSKey'
@@ -10056,7 +10056,7 @@ Resources:
             Value: !Ref 'PeeringInvitation'
         Parameters:
           CodeDownloadUrl:
-            Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
             Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
             Type: String
           DatabaseAdminPassword:
@@ -10340,7 +10340,7 @@ Resources:
             Value: !GetAtt 'Alb.CanonicalHostedZoneID'
         Parameters:
           CodeDownloadUrl:
-            Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
             Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
             Type: String
           DatabaseAdminPassword:

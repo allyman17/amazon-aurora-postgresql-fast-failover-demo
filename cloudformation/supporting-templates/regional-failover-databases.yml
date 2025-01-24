@@ -108,7 +108,7 @@ Outputs:
       - !GetAtt 'KMSKeyReplica.Arn'
 Parameters:
   CodeDownloadUrl:
-    Default: https://codeload.github.com/aws-samples/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+    Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
     Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
     Type: String
   DatabaseAdminPassword:
@@ -516,7 +516,7 @@ Resources:
       EnableIAMDatabaseAuthentication: false
       Engine: aurora-postgresql
       EngineMode: provisioned
-      EngineVersion: '13.7'
+      EngineVersion: '13.18'
       GlobalClusterIdentifier: !GetAtt 'PrimaryRegionDbExportRetriever.GlobalAppDbClusterIdentifier'
       KmsKeyId: !If
         - IsPrimaryRegion
