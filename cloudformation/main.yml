@@ -5448,1531 +5448,671 @@ Resources:
               Value: !Ref 'LambdaLayerCreatorResource'
             Type: AWS::SSM::Parameter
     Type: AWS::CloudFormation::StackSet
-DashboardStackSet:
-    DependsOn:
-      - StackSetExecutionRole
-      - StackSetAdministrationRole
-      - CustomResourcesStackSet
-      - NetworkingStackSet
-    Properties:
-      AdministrationRoleARN: !GetAtt 'StackSetAdministrationRole.Arn'
-      CallAs: SELF
-      Capabilities:
-        - CAPABILITY_IAM
-        - CAPABILITY_AUTO_EXPAND
-      Description: Multi-Region RDS - Dashboard
-      ExecutionRoleName: !Ref 'StackSetExecutionRole'
-      OperationPreferences:
-        FailureToleranceCount: 0
-        MaxConcurrentCount: 2
-        RegionConcurrencyType: PARALLEL
-      Parameters:
-        - ParameterKey: MainStackName
-          ParameterValue: !Ref 'AWS::StackName'
-        - ParameterKey: DatabaseAdminUsername
-          ParameterValue: !Ref 'DatabaseAdminUsername'
-        - ParameterKey: DatabaseAdminPassword
-          ParameterValue: !Ref 'DatabaseAdminPassword'
-        - ParameterKey: PrimaryRegionName
-          ParameterValue: !Ref 'PrimaryRegionName'
-        - ParameterKey: PrimaryVpcCidr
-          ParameterValue: !Ref 'PrimaryVpcCidr'
-        - ParameterKey: PrimaryPublicSubnetZoneACidr
-          ParameterValue: !Ref 'PrimaryPublicSubnetZoneACidr'
-        - ParameterKey: PrimaryPublicSubnetZoneBCidr
-          ParameterValue: !Ref 'PrimaryPublicSubnetZoneBCidr'
-        - ParameterKey: PrimaryPrivateSubnetZoneACidr
-          ParameterValue: !Ref 'PrimaryPrivateSubnetZoneACidr'
-        - ParameterKey: PrimaryPrivateSubnetZoneBCidr
-          ParameterValue: !Ref 'PrimaryPrivateSubnetZoneBCidr'
-        - ParameterKey: PrimaryDatabaseSubnetZoneACidr
-          ParameterValue: !Ref 'PrimaryDatabaseSubnetZoneACidr'
-        - ParameterKey: PrimaryDatabaseSubnetZoneBCidr
-          ParameterValue: !Ref 'PrimaryDatabaseSubnetZoneBCidr'
-        - ParameterKey: FailoverRegionName
-          ParameterValue: !Ref 'FailoverRegionName'
-        - ParameterKey: FailoverVpcCidr
-          ParameterValue: !Ref 'FailoverVpcCidr'
-        - ParameterKey: FailoverPublicSubnetZoneACidr
-          ParameterValue: !Ref 'FailoverPublicSubnetZoneACidr'
-        - ParameterKey: FailoverPublicSubnetZoneBCidr
-          ParameterValue: !Ref 'FailoverPublicSubnetZoneBCidr'
-        - ParameterKey: FailoverPrivateSubnetZoneACidr
-          ParameterValue: !Ref 'FailoverPrivateSubnetZoneACidr'
-        - ParameterKey: FailoverPrivateSubnetZoneBCidr
-          ParameterValue: !Ref 'FailoverPrivateSubnetZoneBCidr'
-        - ParameterKey: FailoverDatabaseSubnetZoneACidr
-          ParameterValue: !Ref 'FailoverDatabaseSubnetZoneACidr'
-        - ParameterKey: FailoverDatabaseSubnetZoneBCidr
-          ParameterValue: !Ref 'FailoverDatabaseSubnetZoneBCidr'
-        - ParameterKey: PublicFqdn
-          ParameterValue: !Ref 'PublicFqdn'
-        - ParameterKey: PublicHostedZoneId
-          ParameterValue: !Ref 'PublicHostedZoneId'
-        - ParameterKey: CodeDownloadUrl
-          ParameterValue: !Ref 'CodeDownloadUrl'
-      PermissionModel: SELF_MANAGED
-      StackInstancesGroup:
-        - DeploymentTargets:
-            Accounts:
-              - !Ref 'AWS::AccountId'
-          Regions:
-            - !Ref 'PrimaryRegionName'
-      StackSetName: !Join
-        - '-'
-        - - !Ref 'AWS::StackName'
-          - Dashboard
-      TemplateBody: |
-        Conditions:
-          IsFailoverRegion: !Not
-            - !Equals
-              - !Ref 'PrimaryRegionName'
-              - !Ref 'AWS::Region'
-          IsPrimaryRegion: !Equals
-            - !Ref 'PrimaryRegionName'
-            - !Ref 'AWS::Region'
+  DashboardStackSet:
+      DependsOn:
+        - StackSetExecutionRole
+        - StackSetAdministrationRole
+        - CustomResourcesStackSet
+        - NetworkingStackSet
+      Properties:
+        AdministrationRoleARN: !GetAtt 'StackSetAdministrationRole.Arn'
+        CallAs: SELF
+        Capabilities:
+          - CAPABILITY_IAM
+          - CAPABILITY_AUTO_EXPAND
+        Description: Multi-Region RDS - Dashboard
+        ExecutionRoleName: !Ref 'StackSetExecutionRole'
+        OperationPreferences:
+          FailureToleranceCount: 0
+          MaxConcurrentCount: 2
+          RegionConcurrencyType: PARALLEL
         Parameters:
-          CodeDownloadUrl:
-            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
-            Description: The URL from which the supporting codebase can be downloaded.
-            Type: String
-          DatabaseAdminPassword:
-            Description: The password for the RDS Aurora admin account.
-            NoEcho: true
-            Type: String
-          DatabaseAdminUsername:
-            Description: The username for the RDS Aurora admin account.
-            Type: String
-          FailoverDatabaseSubnetZoneACidr:
-            Default: 10.10.10.0/24
-            Type: String
-          FailoverDatabaseSubnetZoneBCidr:
-            Default: 10.10.13.0/24
-            Type: String
-          FailoverPrivateSubnetZoneACidr:
-            Default: 10.10.9.0/24
-            Type: String
-          FailoverPrivateSubnetZoneBCidr:
-            Default: 10.10.12.0/24
-            Type: String
-          FailoverPublicSubnetZoneACidr:
-            Default: 10.10.8.0/24
-            Type: String
-          FailoverPublicSubnetZoneBCidr:
-            Default: 10.10.11.0/24
-            Type: String
-          FailoverRegionName:
-            Default: us-east-2
-            Type: String
-          FailoverVpcCidr:
-            Default: 10.10.8.0/21
-            Type: String
-          MainStackName:
-            Type: String
-          PrimaryDatabaseSubnetZoneACidr:
-            Default: 10.10.2.0/24
-            Type: String
-          PrimaryDatabaseSubnetZoneBCidr:
-            Default: 10.10.5.0/24
-            Type: String
-          PrimaryPrivateSubnetZoneACidr:
-            Default: 10.10.1.0/24
-            Type: String
-          PrimaryPrivateSubnetZoneBCidr:
-            Default: 10.10.4.0/24
-            Type: String
-          PrimaryPublicSubnetZoneACidr:
-            Default: 10.10.0.0/24
-            Type: String
-          PrimaryPublicSubnetZoneBCidr:
-            Default: 10.10.3.0/24
-            Type: String
-          PrimaryRegionName:
-            Default: us-east-1
-            Type: String
-          PrimaryVpcCidr:
-            Default: 10.10.0.0/21
-            Type: String
-          PublicFqdn:
-            Description: The FQDN for this application
-            Type: String
-          PublicHostedZoneId:
-            Description: The ID of the public Route 53 Hosted Zone
-            Type: String
-
-        Resources:
-          GlobalAcmCertificateFunction:
-            Properties:
-              Code:
-                ZipFile: |
-                  import boto3
-                  import cfnresponse
-                  import time
-
-                  def handler(event, context):
-                      props = event['ResourceProperties']
-                      acm = boto3.client('acm', region_name='us-east-1')
-                      r53 = boto3.client('route53')
-                      
-                      try:
-                          if event['RequestType'] in ['Create', 'Update']:
-                              cert_arn = create_certificate(acm, r53, props)
-                              cfnresponse.send(event, context, cfnresponse.SUCCESS, 
-                                  {'Arn': cert_arn})
-                          elif event['RequestType'] == 'Delete':
-                              if 'PhysicalResourceId' in event:
-                                  acm.delete_certificate(CertificateArn=event['PhysicalResourceId'])
-                              cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
-                      except Exception as e:
-                          print(f"Error: {str(e)}")
-                          cfnresponse.send(event, context, cfnresponse.FAILED, {})
-
-                  def create_certificate(acm, r53, props):
-                      cert = acm.request_certificate(
-                          DomainName=f"dashboard.{props['DomainName']}",
-                          ValidationMethod='DNS',
-                          SubjectAlternativeNames=[],
-                      )
-                      
-                      waiter = acm.get_waiter('certificate_validated')
-                      for _ in range(30):
-                          try:
-                              cert_metadata = acm.describe_certificate(
-                                  CertificateArn=cert['CertificateArn'])
-                              if 'DomainValidationOptions' in cert_metadata['Certificate']:
-                                  break
-                              time.sleep(2)
-                          except:
-                              time.sleep(2)
-                      
-                      for validation in cert_metadata['Certificate']['DomainValidationOptions']:
-                          if validation['ValidationMethod'] == 'DNS':
-                              r53.change_resource_record_sets(
-                                  HostedZoneId=props['HostedZoneId'],
-                                  ChangeBatch={
-                                      'Changes': [{
-                                          'Action': 'UPSERT',
-                                          'ResourceRecordSet': {
-                                              'Name': validation['ResourceRecord']['Name'],
-                                              'Type': validation['ResourceRecord']['Type'],
-                                              'TTL': 300,
-                                              'ResourceRecords': [{
-                                                  'Value': validation['ResourceRecord']['Value']
-                                              }]
-                                          }
-                                      }]
-                                  }
-                              )
-                      
-                      waiter.wait(
-                          CertificateArn=cert['CertificateArn'],
-                          WaiterConfig={'Delay': 5, 'MaxAttempts': 60}
-                      )
-                      
-                      return cert['CertificateArn']
-
-              Handler: index.handler
-              Role: !GetAtt 'GlobalAcmCertificateFunctionRole.Arn'
-              Runtime: python3.11
-              Timeout: 900
-            Type: AWS::Lambda::Function
-
-          GlobalAcmCertificateFunctionRole:
-            Properties:
-              AssumeRolePolicyDocument:
-                Statement:
-                  - Action: sts:AssumeRole
-                    Effect: Allow
-                    Principal:
-                      Service: lambda.amazonaws.com
-                Version: '2012-10-17'
-              ManagedPolicyArns:
-                - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-              Policies:
-                - PolicyDocument:
-                    Statement:
-                      - Action:
-                          - acm:RequestCertificate
-                          - acm:DescribeCertificate
-                          - acm:DeleteCertificate
-                          - route53:ChangeResourceRecordSets
-                        Effect: Allow
-                        Resource: '*'
-                    Version: '2012-10-17'
-                  PolicyName: acm-cert-management
-            Type: AWS::IAM::Role
-
-          GlobalAcmCertificate:
-            Properties:
-              ServiceToken: !GetAtt 'GlobalAcmCertificateFunction.Arn'
-              DomainName: !Ref 'PublicFqdn'
-              HostedZoneId: !Ref 'PublicHostedZoneId'
-            Type: Custom::GlobalAcmCertificate
-
-          TlsCertificate:
-            Properties:
-              DomainName: !Join
-                - .
-                - - dashboard
-                  - !Ref 'PublicFqdn'
-              DomainValidationOptions:
-                - DomainName: !Join
-                    - .
-                    - - dashboard
-                      - !Ref 'PublicFqdn'
-                  HostedZoneId: !Ref 'PublicHostedZoneId'
-              ValidationMethod: DNS
-            Type: AWS::CertificateManager::Certificate
-
-          Bucket:
-            Properties:
-              AccessControl: Private
-              BucketEncryption:
-                ServerSideEncryptionConfiguration:
-                  - ServerSideEncryptionByDefault:
-                      SSEAlgorithm: AES256
-              PublicAccessBlockConfiguration:
-                BlockPublicAcls: true
-                BlockPublicPolicy: true
-                IgnorePublicAcls: true
-                RestrictPublicBuckets: true
-              VersioningConfiguration:
-                Status: Suspended
-            Type: AWS::S3::Bucket
-
-          BucketPolicy:
-            DependsOn:
-              - Bucket
-              - CloudFrontAccessIdentity
-            Properties:
-              Bucket: !Ref 'Bucket'
-              PolicyDocument:
-                Statement:
-                  - Action:
-                      - s3:GetObject
-                    Effect: Allow
-                    Principal:
-                      AWS: !Join
-                        - ''
-                        - - 'arn:'
-                          - !Ref 'AWS::Partition'
-                          - ':iam::cloudfront:user/CloudFront Origin Access Identity '
-                          - !Ref 'CloudFrontAccessIdentity'
-                    Resource:
-                      - !Join
-                        - ''
-                        - - !GetAtt 'Bucket.Arn'
-                          - /*
-            Type: AWS::S3::BucketPolicy
-          CloudFrontAccessIdentity:
-            Properties:
-              CloudFrontOriginAccessIdentityConfig:
-                Comment: Dashboard
-            Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
-          CloudFrontDistribution:
-            DependsOn:
-              - GlobalAcmCertificate
-              - ResponseHeadersPolicy
-              - CloudFrontAccessIdentity
-            Properties:
-              DistributionConfig:
-                Aliases:
-                  - !Join
-                    - .
-                    - - dashboard
-                      - !Ref 'PublicFqdn'
-                Comment: !Join
-                  - ''
-                  - - 'Dashboard Controller for '
-                    - !Ref 'MainStackName'
-                DefaultCacheBehavior:
-                  CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
-                  Compress: true
-                  ForwardedValues:
-                    QueryString: true
-                  ResponseHeadersPolicyId: !Ref 'ResponseHeadersPolicy'
-                  TargetOriginId: dashboard-bucket
-                  ViewerProtocolPolicy: redirect-to-https
-                Enabled: true
-                HttpVersion: http2
-                IPV6Enabled: true
-                Origins:
-                  - DomainName: !GetAtt 'Bucket.DomainName'
-                    Id: dashboard-bucket
-                    S3OriginConfig:
-                      OriginAccessIdentity: !Join
-                        - ''
-                        - - origin-access-identity/cloudfront/
-                          - !Ref 'CloudFrontAccessIdentity'
-                ViewerCertificate:
-                  AcmCertificateArn: !GetAtt 'GlobalAcmCertificate.Arn'
-                  MinimumProtocolVersion: TLSv1.1_2016
-                  SslSupportMethod: sni-only
-            Type: AWS::CloudFront::Distribution
-          DashboardCodeDeployer:
-            DependsOn:
-              - DashboardCodeDeployerRole
-            Properties:
-              Architectures:
-                - x86_64
-              Code:
-                ZipFile: "import sys,subprocess\nsubprocess.call('pip install cfnresponse -t /tmp/ --no-cache-dir'.split(),stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)\nsys.path.insert(1,'/tmp/')\nimport\
-                  \ os,json,glob,boto3,shutil,urllib3,zipfile,mimetypes,cfnresponse\nfrom collections import defaultdict\nfrom botocore.exceptions import ClientError as boto3_client_error\nhttp=urllib3.PoolManager()\n\
-                  try:from urllib2 import HTTPError,build_opener,HTTPHandler,Request\nexcept ImportError:from urllib.error import HTTPError;from urllib.request import build_opener,HTTPHandler,Request\n'\\n    -\
-                  \ CodeBucketName | str\\n    - CodeDownloadUrl | str\\n'\ndef handler(event,context):\n\tU='VersionId';T='Key';S='/dashboard/';R=False;Q='RequestType';J='CodeBucketName';D=context;A=event;print(json.dumps(A));C=A['ResourceProperties']['Properties'];E=boto3.client('s3');F={}\n\
-                  \tif A[Q]in['Create','Update']:\n\t\tG='/tmp/dashboard_code.zip';K=G.replace('.zip','');'\\n            Download the codebase\\n        ';V=urllib3.PoolManager();L=V.request('GET',C['CodeDownloadUrl'],preload_content=R)\n\
-                  \t\tif L.status!=200:return R\n\t\twith L as W,open(G,'wb')as X:shutil.copyfileobj(W,X)\n\t\t'\\n            Unzip the downloaded code\\n        '\n\t\twith zipfile.ZipFile(G,'r')as Y:Y.extractall(K)\n\
-                  \t\t'\\n            For each file in the local code directory\\n        '\n\t\tfor B in glob.iglob(K+'**/**',recursive=True):\n\t\t\t\"\\n                If it's one of the dashboard files and\
-                  \ it's a file, not a directory, we'll upload it to S3\\n            \"\n\t\t\tif S in B and os.path.isfile(B):\n\t\t\t\ttry:Z=B.split(S)[1];E.upload_file(B,C[J],Z,ExtraArgs={'ContentType':mimetypes.guess_type(B)[0]})\n\
-                  \t\t\t\texcept boto3_client_error as H:print('Failed to Upload Dashboard File: '+str(H));return cfnresponse.send(A,D,cfnresponse.FAILED,F)\n\telif A[Q]in['Delete']:\n\t\t\"\\n            Here,\
-                  \ we'll delete all objects, versions, and delete markers from the bucket.\\n        \";a=E.get_paginator('list_object_versions');I=[]\n\t\tfor M in a.paginate(Bucket=C[J]):\n\t\t\tfor N in['Versions','DeleteMarkers']:\n\
-                  \t\t\t\tif N in M:\n\t\t\t\t\tfor O in M[N]:I.append({T:O[T],U:O[U]})\n\t\tfor P in range(0,len(I),1000):\n\t\t\ttry:b=E.delete_objects(Bucket=C[J],Delete={'Objects':I[P:P+1000],'Quiet':True})\n\
-                  \t\t\texcept boto3_client_error as H:print('Failed to Delete S3 Objects: '+str(H));return cfnresponse.send(A,D,cfnresponse.FAILED,F)\n\treturn cfnresponse.send(A,D,cfnresponse.SUCCESS,F)"
-              Description: Downloads dashboard code from a remote repo and deploys it to Amazon S3
-              Environment:
-                Variables:
-                  CODE_BUCKET_NAME: !Ref 'Bucket'
-                  CODE_DOWNLOAD_URL: !Ref 'CodeDownloadUrl'
-              Handler: index.handler
-              Layers:
-                - !Join
-                  - ''
-                  - - '{{resolve:ssm:/'
-                    - !Ref 'MainStackName'
-                    - /RegionalLambdaLayerVersionArn}}
-              MemorySize: 128
-              Role: !GetAtt 'DashboardCodeDeployerRole.Arn'
-              Runtime: python3.11
-              Timeout: 30
-              TracingConfig:
-                Mode: PassThrough
-            Type: AWS::Lambda::Function
-          DashboardCodeDeployerLogGroup:
-            DeletionPolicy: Delete
-            DependsOn:
-              - DashboardCodeDeployer
-            Properties:
-              LogGroupName: !Join
-                - ''
-                - - /aws/lambda/
-                  - !Ref 'DashboardCodeDeployer'
-              RetentionInDays: 30
-            Type: AWS::Logs::LogGroup
-          DashboardCodeDeployerResource:
-            DependsOn:
-              - Bucket
-              - DashboardCodeDeployer
-              - DashboardCodeDeployerLogGroup
-            Properties:
-              Properties:
-                CodeBucketName: !Ref 'Bucket'
-                CodeDownloadUrl: !Ref 'CodeDownloadUrl'
-              ServiceToken: !GetAtt 'DashboardCodeDeployer.Arn'
-              Type: Custom::DeployDashboardCode
-              Version: '1.0'
-            Type: AWS::CloudFormation::CustomResource
-          DashboardCodeDeployerRole:
-            DependsOn: []
-            Properties:
-              AssumeRolePolicyDocument:
-                Statement:
-                  - Action:
-                      - sts:AssumeRole
-                    Effect: Allow
-                    Principal:
-                      Service:
-                        - lambda.amazonaws.com
-              ManagedPolicyArns:
-                - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-              MaxSessionDuration: 3600
-              Policies:
-                - PolicyDocument:
-                    Statement:
-                      - Action:
-                          - s3:PutObject
-                          - s3:ListBucket
-                          - s3:DeleteObject
-                          - s3:ListBucketVersions
-                          - s3:DeleteObjectVersion
-                        Effect: Allow
-                        Resource:
-                          - !GetAtt 'Bucket.Arn'
-                          - !Join
-                            - ''
-                            - - !GetAtt 'Bucket.Arn'
-                              - /*
-                        Sid: PutS3Objects
-                  PolicyName: main-policy
-            Type: AWS::IAM::Role
-          DnsRecord:
-            DependsOn:
-              - CloudFrontDistribution
-            Properties:
-              HostedZoneId: !Ref 'PublicHostedZoneId'
-              RecordSets:
-                - AliasTarget:
-                    DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
-                    HostedZoneId: Z2FDTNDATAQYW2
-                  Name: !Join
-                    - .
-                    - - dashboard
-                      - !Ref 'PublicFqdn'
-                  Type: A
-            Type: AWS::Route53::RecordSetGroup
-          ResponseHeadersPolicy:
-            Properties:
-              ResponseHeadersPolicyConfig:
-                CorsConfig:
-                  AccessControlAllowCredentials: false
-                  AccessControlAllowHeaders:
-                    Items:
-                      - '*'
-                  AccessControlAllowMethods:
-                    Items:
-                      - GET
-                      - POST
-                      - OPTIONS
-                  AccessControlAllowOrigins:
-                    Items:
-                      - '*'
-                  AccessControlExposeHeaders:
-                    Items:
-                      - '*'
-                  OriginOverride: false
-                Name: !Join
-                  - ''
-                  - - !Ref 'MainStackName'
-                    - -CORS-With-Preflight
-            Type: AWS::CloudFront::ResponseHeadersPolicy
-          TlsCertificate:
-            Properties:
-              DomainName: !Join
-                - .
-                - - dashboard
-                  - !Ref 'PublicFqdn'
-              DomainValidationOptions:
-                - DomainName: !Join
-                    - .
-                    - - dashboard
-                      - !Ref 'PublicFqdn'
-                  HostedZoneId: !Ref 'PublicHostedZoneId'
-              ValidationMethod: DNS
-            Type: AWS::CertificateManager::Certificate
-    Type: AWS::CloudFormation::StackSet
-  FailoverDatabasesStackSet:
-    DependsOn:
-      - StackSetExecutionRole
-      - StackSetAdministrationRole
-      - CustomResourcesStackSet
-      - NetworkingStackSet
-      - PrimaryDatabasesStackSet
-    Properties:
-      AdministrationRoleARN: !GetAtt 'StackSetAdministrationRole.Arn'
-      CallAs: SELF
-      Capabilities:
-        - CAPABILITY_IAM
-        - CAPABILITY_AUTO_EXPAND
-      Description: Multi-Region RDS - Failover-Databases
-      ExecutionRoleName: !Ref 'StackSetExecutionRole'
-      OperationPreferences:
-        FailureToleranceCount: 0
-        MaxConcurrentCount: 2
-        RegionConcurrencyType: PARALLEL
-      Parameters:
-        - ParameterKey: MainStackName
-          ParameterValue: !Ref 'AWS::StackName'
-        - ParameterKey: DatabaseAdminUsername
-          ParameterValue: !Ref 'DatabaseAdminUsername'
-        - ParameterKey: DatabaseAdminPassword
-          ParameterValue: !Ref 'DatabaseAdminPassword'
-        - ParameterKey: PrimaryRegionName
-          ParameterValue: !Ref 'PrimaryRegionName'
-        - ParameterKey: PrimaryVpcCidr
-          ParameterValue: !Ref 'PrimaryVpcCidr'
-        - ParameterKey: PrimaryPublicSubnetZoneACidr
-          ParameterValue: !Ref 'PrimaryPublicSubnetZoneACidr'
-        - ParameterKey: PrimaryPublicSubnetZoneBCidr
-          ParameterValue: !Ref 'PrimaryPublicSubnetZoneBCidr'
-        - ParameterKey: PrimaryPrivateSubnetZoneACidr
-          ParameterValue: !Ref 'PrimaryPrivateSubnetZoneACidr'
-        - ParameterKey: PrimaryPrivateSubnetZoneBCidr
-          ParameterValue: !Ref 'PrimaryPrivateSubnetZoneBCidr'
-        - ParameterKey: PrimaryDatabaseSubnetZoneACidr
-          ParameterValue: !Ref 'PrimaryDatabaseSubnetZoneACidr'
-        - ParameterKey: PrimaryDatabaseSubnetZoneBCidr
-          ParameterValue: !Ref 'PrimaryDatabaseSubnetZoneBCidr'
-        - ParameterKey: FailoverRegionName
-          ParameterValue: !Ref 'FailoverRegionName'
-        - ParameterKey: FailoverVpcCidr
-          ParameterValue: !Ref 'FailoverVpcCidr'
-        - ParameterKey: FailoverPublicSubnetZoneACidr
-          ParameterValue: !Ref 'FailoverPublicSubnetZoneACidr'
-        - ParameterKey: FailoverPublicSubnetZoneBCidr
-          ParameterValue: !Ref 'FailoverPublicSubnetZoneBCidr'
-        - ParameterKey: FailoverPrivateSubnetZoneACidr
-          ParameterValue: !Ref 'FailoverPrivateSubnetZoneACidr'
-        - ParameterKey: FailoverPrivateSubnetZoneBCidr
-          ParameterValue: !Ref 'FailoverPrivateSubnetZoneBCidr'
-        - ParameterKey: FailoverDatabaseSubnetZoneACidr
-          ParameterValue: !Ref 'FailoverDatabaseSubnetZoneACidr'
-        - ParameterKey: FailoverDatabaseSubnetZoneBCidr
-          ParameterValue: !Ref 'FailoverDatabaseSubnetZoneBCidr'
-        - ParameterKey: PublicFqdn
-          ParameterValue: !Ref 'PublicFqdn'
-        - ParameterKey: PublicHostedZoneId
-          ParameterValue: !Ref 'PublicHostedZoneId'
-        - ParameterKey: CodeDownloadUrl
-          ParameterValue: !Ref 'CodeDownloadUrl'
-      PermissionModel: SELF_MANAGED
-      StackInstancesGroup:
-        - DeploymentTargets:
-            Accounts:
-              - !Ref 'AWS::AccountId'
-          Regions:
-            - !Ref 'FailoverRegionName'
-      StackSetName: !Join
-        - '-'
-        - - !Ref 'AWS::StackName'
-          - Failover-Databases
-      TemplateBody: |
-        Conditions:
-          IsFailoverRegion: !Not
-            - !Equals
-              - !Ref 'PrimaryRegionName'
-              - !Ref 'AWS::Region'
-          IsPrimaryRegion: !Equals
-            - !Ref 'PrimaryRegionName'
-            - !Ref 'AWS::Region'
-        Metadata:
-          AWS::CloudFormation::Interface:
-            ParameterGroups: []
-            ParameterLabels: {}
-          Comments: ''
-          CreatedBy: Carter Meyers (AWS)
-          Description: This application deploys a Global RDS Aurora cluster.
-          LastUpdated: September 25, 2024
-          Version: v2.11
-        Outputs:
-          GlobalAppDbClusterIdentifier:
-            Condition: ''
-            Export:
-              Name: !Join
-                - '-'
-                - - !Ref 'MainStackName'
-                  - GlobalAppDbClusterIdentifier
-            Value: !GetAtt 'PrimaryRegionDbExportRetriever.GlobalAppDbClusterIdentifier'
-          RegionalAppDbAdminSecretArn:
-            Condition: ''
-            Export:
-              Name: !Join
-                - '-'
-                - - !Ref 'MainStackName'
-                  - AppDbAdminSecretArn
-            Value: !Ref 'AppDbAdminSecret'
-          RegionalAppDbClusterArn:
-            Condition: ''
-            Value: !GetAtt 'FailoverAppCluster.DBClusterArn'
-          RegionalAppDbClusterIdentifier:
-            Condition: ''
-            Value: !Ref 'FailoverAppCluster'
-          RegionalAppDbClusterReaderEndpoint:
-            Condition: ''
-            Export:
-              Name: !Join
-                - '-'
-                - - !Ref 'MainStackName'
-                  - RegionalAppDbClusterReaderEndpoint
-            Value: !GetAtt 'FailoverAppCluster.ReadEndpoint.Address'
-          RegionalAppDbClusterWriterEndpoint:
-            Condition: ''
-            Export:
-              Name: !Join
-                - '-'
-                - - !Ref 'MainStackName'
-                  - RegionalAppDbClusterWriterEndpoint
-            Value: !GetAtt 'FailoverAppCluster.Endpoint.Address'
-          RegionalAppDbProxyArn:
-            Condition: ''
-            Value: !GetAtt 'AppDbProxy.DBProxyArn'
-          RegionalAppDbProxyName:
-            Condition: ''
-            Value: !Ref 'AppDbProxy'
-          RegionalAppDbProxyPort:
-            Condition: ''
-            Value: !GetAtt 'FailoverAppCluster.Endpoint.Port'
-          RegionalAppDbProxyReaderEndpoint:
-            Condition: ''
-            Value: !GetAtt 'AppDbProxyReaderEndpoint.Endpoint'
-          RegionalAppDbProxyWriterEndpoint:
-            Condition: ''
-            Value: !GetAtt 'AppDbProxy.Endpoint'
-          RegionalDemoDbAdminSecretArn:
-            Condition: ''
-            Export:
-              Name: !Join
-                - '-'
-                - - !Ref 'MainStackName'
-                  - DemoDbAdminSecretArn
-            Value: !Join
-              - ':'
-              - - arn
-                - !Ref 'AWS::Partition'
-                - secretsmanager
-                - !Ref 'AWS::Region'
+          - ParameterKey: MainStackName
+            ParameterValue: !Ref 'AWS::StackName'
+          - ParameterKey: DatabaseAdminUsername
+            ParameterValue: !Ref 'DatabaseAdminUsername'
+          - ParameterKey: DatabaseAdminPassword
+            ParameterValue: !Ref 'DatabaseAdminPassword'
+          - ParameterKey: PrimaryRegionName
+            ParameterValue: !Ref 'PrimaryRegionName'
+          - ParameterKey: PrimaryVpcCidr
+            ParameterValue: !Ref 'PrimaryVpcCidr'
+          - ParameterKey: PrimaryPublicSubnetZoneACidr
+            ParameterValue: !Ref 'PrimaryPublicSubnetZoneACidr'
+          - ParameterKey: PrimaryPublicSubnetZoneBCidr
+            ParameterValue: !Ref 'PrimaryPublicSubnetZoneBCidr'
+          - ParameterKey: PrimaryPrivateSubnetZoneACidr
+            ParameterValue: !Ref 'PrimaryPrivateSubnetZoneACidr'
+          - ParameterKey: PrimaryPrivateSubnetZoneBCidr
+            ParameterValue: !Ref 'PrimaryPrivateSubnetZoneBCidr'
+          - ParameterKey: PrimaryDatabaseSubnetZoneACidr
+            ParameterValue: !Ref 'PrimaryDatabaseSubnetZoneACidr'
+          - ParameterKey: PrimaryDatabaseSubnetZoneBCidr
+            ParameterValue: !Ref 'PrimaryDatabaseSubnetZoneBCidr'
+          - ParameterKey: FailoverRegionName
+            ParameterValue: !Ref 'FailoverRegionName'
+          - ParameterKey: FailoverVpcCidr
+            ParameterValue: !Ref 'FailoverVpcCidr'
+          - ParameterKey: FailoverPublicSubnetZoneACidr
+            ParameterValue: !Ref 'FailoverPublicSubnetZoneACidr'
+          - ParameterKey: FailoverPublicSubnetZoneBCidr
+            ParameterValue: !Ref 'FailoverPublicSubnetZoneBCidr'
+          - ParameterKey: FailoverPrivateSubnetZoneACidr
+            ParameterValue: !Ref 'FailoverPrivateSubnetZoneACidr'
+          - ParameterKey: FailoverPrivateSubnetZoneBCidr
+            ParameterValue: !Ref 'FailoverPrivateSubnetZoneBCidr'
+          - ParameterKey: FailoverDatabaseSubnetZoneACidr
+            ParameterValue: !Ref 'FailoverDatabaseSubnetZoneACidr'
+          - ParameterKey: FailoverDatabaseSubnetZoneBCidr
+            ParameterValue: !Ref 'FailoverDatabaseSubnetZoneBCidr'
+          - ParameterKey: PublicFqdn
+            ParameterValue: !Ref 'PublicFqdn'
+          - ParameterKey: PublicHostedZoneId
+            ParameterValue: !Ref 'PublicHostedZoneId'
+          - ParameterKey: CodeDownloadUrl
+            ParameterValue: !Ref 'CodeDownloadUrl'
+        PermissionModel: SELF_MANAGED
+        StackInstancesGroup:
+          - DeploymentTargets:
+              Accounts:
                 - !Ref 'AWS::AccountId'
-                - secret
-                - !Select
-                  - 6
-                  - !Split
-                    - ':'
-                    - !GetAtt 'PrimaryRegionDbExportRetriever.DemoDbAdminSecretArn'
-          RegionalDemoDbClusterReaderEndpoint:
-            Condition: ''
-            Value: !GetAtt 'PrimaryRegionDbExportRetriever.RegionalDemoDbClusterReaderEndpoint'
-          RegionalDemoDbClusterWriterEndpoint:
-            Condition: ''
-            Value: !GetAtt 'PrimaryRegionDbExportRetriever.RegionalDemoDbClusterWriterEndpoint'
-          RegionalKmsKeyArn:
-            Condition: ''
-            Export:
-              Name: !Join
-                - '-'
-                - - !Ref 'MainStackName'
-                  - RegionalKmsKeyArn
-            Value: !If
-              - IsPrimaryRegion
-              - !GetAtt 'KMSKey.Arn'
-              - !GetAtt 'KMSKeyReplica.Arn'
+            Regions:
+              - !Ref 'PrimaryRegionName'
+        StackSetName: !Join
+          - '-'
+          - - !Ref 'AWS::StackName'
+            - Dashboard
+        TemplateBody: |
+          Conditions:
+            IsFailoverRegion: !Not
+              - !Equals
+                - !Ref 'PrimaryRegionName'
+                - !Ref 'AWS::Region'
+            IsPrimaryRegion: !Equals
+              - !Ref 'PrimaryRegionName'
+              - !Ref 'AWS::Region'
+          Parameters:
+            CodeDownloadUrl:
+              Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+              Description: The URL from which the supporting codebase can be downloaded.
+              Type: String
+            DatabaseAdminPassword:
+              Description: The password for the RDS Aurora admin account.
+              NoEcho: true
+              Type: String
+            DatabaseAdminUsername:
+              Description: The username for the RDS Aurora admin account.
+              Type: String
+            FailoverDatabaseSubnetZoneACidr:
+              Default: 10.10.10.0/24
+              Type: String
+            FailoverDatabaseSubnetZoneBCidr:
+              Default: 10.10.13.0/24
+              Type: String
+            FailoverPrivateSubnetZoneACidr:
+              Default: 10.10.9.0/24
+              Type: String
+            FailoverPrivateSubnetZoneBCidr:
+              Default: 10.10.12.0/24
+              Type: String
+            FailoverPublicSubnetZoneACidr:
+              Default: 10.10.8.0/24
+              Type: String
+            FailoverPublicSubnetZoneBCidr:
+              Default: 10.10.11.0/24
+              Type: String
+            FailoverRegionName:
+              Default: us-east-2
+              Type: String
+            FailoverVpcCidr:
+              Default: 10.10.8.0/21
+              Type: String
+            MainStackName:
+              Type: String
+            PrimaryDatabaseSubnetZoneACidr:
+              Default: 10.10.2.0/24
+              Type: String
+            PrimaryDatabaseSubnetZoneBCidr:
+              Default: 10.10.5.0/24
+              Type: String
+            PrimaryPrivateSubnetZoneACidr:
+              Default: 10.10.1.0/24
+              Type: String
+            PrimaryPrivateSubnetZoneBCidr:
+              Default: 10.10.4.0/24
+              Type: String
+            PrimaryPublicSubnetZoneACidr:
+              Default: 10.10.0.0/24
+              Type: String
+            PrimaryPublicSubnetZoneBCidr:
+              Default: 10.10.3.0/24
+              Type: String
+            PrimaryRegionName:
+              Default: us-east-1
+              Type: String
+            PrimaryVpcCidr:
+              Default: 10.10.0.0/21
+              Type: String
+            PublicFqdn:
+              Description: The FQDN for this application
+              Type: String
+            PublicHostedZoneId:
+              Description: The ID of the public Route 53 Hosted Zone
+              Type: String
+
+          Resources:
+            GlobalAcmCertificateFunction:
+              Properties:
+                Code:
+                  ZipFile: |
+                    import boto3
+                    import cfnresponse
+                    import time
+
+                    def handler(event, context):
+                        props = event['ResourceProperties']
+                        acm = boto3.client('acm', region_name='us-east-1')
+                        r53 = boto3.client('route53')
+                        
+                        try:
+                            if event['RequestType'] in ['Create', 'Update']:
+                                cert_arn = create_certificate(acm, r53, props)
+                                cfnresponse.send(event, context, cfnresponse.SUCCESS, 
+                                    {'Arn': cert_arn})
+                            elif event['RequestType'] == 'Delete':
+                                if 'PhysicalResourceId' in event:
+                                    acm.delete_certificate(CertificateArn=event['PhysicalResourceId'])
+                                cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+                        except Exception as e:
+                            print(f"Error: {str(e)}")
+                            cfnresponse.send(event, context, cfnresponse.FAILED, {})
+
+                    def create_certificate(acm, r53, props):
+                        cert = acm.request_certificate(
+                            DomainName=f"dashboard.{props['DomainName']}",
+                            ValidationMethod='DNS',
+                            SubjectAlternativeNames=[],
+                        )
+                        
+                        waiter = acm.get_waiter('certificate_validated')
+                        for _ in range(30):
+                            try:
+                                cert_metadata = acm.describe_certificate(
+                                    CertificateArn=cert['CertificateArn'])
+                                if 'DomainValidationOptions' in cert_metadata['Certificate']:
+                                    break
+                                time.sleep(2)
+                            except:
+                                time.sleep(2)
+                        
+                        for validation in cert_metadata['Certificate']['DomainValidationOptions']:
+                            if validation['ValidationMethod'] == 'DNS':
+                                r53.change_resource_record_sets(
+                                    HostedZoneId=props['HostedZoneId'],
+                                    ChangeBatch={
+                                        'Changes': [{
+                                            'Action': 'UPSERT',
+                                            'ResourceRecordSet': {
+                                                'Name': validation['ResourceRecord']['Name'],
+                                                'Type': validation['ResourceRecord']['Type'],
+                                                'TTL': 300,
+                                                'ResourceRecords': [{
+                                                    'Value': validation['ResourceRecord']['Value']
+                                                }]
+                                            }
+                                        }]
+                                    }
+                                )
+                        
+                        waiter.wait(
+                            CertificateArn=cert['CertificateArn'],
+                            WaiterConfig={'Delay': 5, 'MaxAttempts': 60}
+                        )
+                        
+                        return cert['CertificateArn']
+
+                Handler: index.handler
+                Role: !GetAtt 'GlobalAcmCertificateFunctionRole.Arn'
+                Runtime: python3.11
+                Timeout: 900
+              Type: AWS::Lambda::Function
+
+            GlobalAcmCertificateFunctionRole:
+              Properties:
+                AssumeRolePolicyDocument:
+                  Statement:
+                    - Action: sts:AssumeRole
+                      Effect: Allow
+                      Principal:
+                        Service: lambda.amazonaws.com
+                  Version: '2012-10-17'
+                ManagedPolicyArns:
+                  - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+                Policies:
+                  - PolicyDocument:
+                      Statement:
+                        - Action:
+                            - acm:RequestCertificate
+                            - acm:DescribeCertificate
+                            - acm:DeleteCertificate
+                            - route53:ChangeResourceRecordSets
+                          Effect: Allow
+                          Resource: '*'
+                      Version: '2012-10-17'
+                    PolicyName: acm-cert-management
+              Type: AWS::IAM::Role
+
+            GlobalAcmCertificate:
+              Properties:
+                ServiceToken: !GetAtt 'GlobalAcmCertificateFunction.Arn'
+                DomainName: !Ref 'PublicFqdn'
+                HostedZoneId: !Ref 'PublicHostedZoneId'
+              Type: Custom::GlobalAcmCertificate
+
+            TlsCertificate:
+              Properties:
+                DomainName: !Join
+                  - .
+                  - - dashboard
+                    - !Ref 'PublicFqdn'
+                DomainValidationOptions:
+                  - DomainName: !Join
+                      - .
+                      - - dashboard
+                        - !Ref 'PublicFqdn'
+                    HostedZoneId: !Ref 'PublicHostedZoneId'
+                ValidationMethod: DNS
+              Type: AWS::CertificateManager::Certificate
+
+            Bucket:
+              Properties:
+                AccessControl: Private
+                BucketEncryption:
+                  ServerSideEncryptionConfiguration:
+                    - ServerSideEncryptionByDefault:
+                        SSEAlgorithm: AES256
+                PublicAccessBlockConfiguration:
+                  BlockPublicAcls: true
+                  BlockPublicPolicy: true
+                  IgnorePublicAcls: true
+                  RestrictPublicBuckets: true
+                VersioningConfiguration:
+                  Status: Suspended
+              Type: AWS::S3::Bucket
+
+            BucketPolicy:
+              DependsOn:
+                - Bucket
+                - CloudFrontAccessIdentity
+              Properties:
+                Bucket: !Ref 'Bucket'
+                PolicyDocument:
+                  Statement:
+                    - Action:
+                        - s3:GetObject
+                      Effect: Allow
+                      Principal:
+                        AWS: !Join
+                          - ''
+                          - - 'arn:'
+                            - !Ref 'AWS::Partition'
+                            - ':iam::cloudfront:user/CloudFront Origin Access Identity '
+                            - !Ref 'CloudFrontAccessIdentity'
+                      Resource:
+                        - !Join
+                          - ''
+                          - - !GetAtt 'Bucket.Arn'
+                            - /*
+              Type: AWS::S3::BucketPolicy
+            CloudFrontAccessIdentity:
+              Properties:
+                CloudFrontOriginAccessIdentityConfig:
+                  Comment: Dashboard
+              Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+            CloudFrontDistribution:
+              DependsOn:
+                - GlobalAcmCertificate
+                - ResponseHeadersPolicy
+                - CloudFrontAccessIdentity
+              Properties:
+                DistributionConfig:
+                  Aliases:
+                    - !Join
+                      - .
+                      - - dashboard
+                        - !Ref 'PublicFqdn'
+                  Comment: !Join
+                    - ''
+                    - - 'Dashboard Controller for '
+                      - !Ref 'MainStackName'
+                  DefaultCacheBehavior:
+                    CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+                    Compress: true
+                    ForwardedValues:
+                      QueryString: true
+                    ResponseHeadersPolicyId: !Ref 'ResponseHeadersPolicy'
+                    TargetOriginId: dashboard-bucket
+                    ViewerProtocolPolicy: redirect-to-https
+                  Enabled: true
+                  HttpVersion: http2
+                  IPV6Enabled: true
+                  Origins:
+                    - DomainName: !GetAtt 'Bucket.DomainName'
+                      Id: dashboard-bucket
+                      S3OriginConfig:
+                        OriginAccessIdentity: !Join
+                          - ''
+                          - - origin-access-identity/cloudfront/
+                            - !Ref 'CloudFrontAccessIdentity'
+                  ViewerCertificate:
+                    AcmCertificateArn: !GetAtt 'GlobalAcmCertificate.Arn'
+                    MinimumProtocolVersion: TLSv1.1_2016
+                    SslSupportMethod: sni-only
+              Type: AWS::CloudFront::Distribution
+            DashboardCodeDeployer:
+              DependsOn:
+                - DashboardCodeDeployerRole
+              Properties:
+                Architectures:
+                  - x86_64
+                Code:
+                  ZipFile: "import sys,subprocess\nsubprocess.call('pip install cfnresponse -t /tmp/ --no-cache-dir'.split(),stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)\nsys.path.insert(1,'/tmp/')\nimport\
+                    \ os,json,glob,boto3,shutil,urllib3,zipfile,mimetypes,cfnresponse\nfrom collections import defaultdict\nfrom botocore.exceptions import ClientError as boto3_client_error\nhttp=urllib3.PoolManager()\n\
+                    try:from urllib2 import HTTPError,build_opener,HTTPHandler,Request\nexcept ImportError:from urllib.error import HTTPError;from urllib.request import build_opener,HTTPHandler,Request\n'\\n    -\
+                    \ CodeBucketName | str\\n    - CodeDownloadUrl | str\\n'\ndef handler(event,context):\n\tU='VersionId';T='Key';S='/dashboard/';R=False;Q='RequestType';J='CodeBucketName';D=context;A=event;print(json.dumps(A));C=A['ResourceProperties']['Properties'];E=boto3.client('s3');F={}\n\
+                    \tif A[Q]in['Create','Update']:\n\t\tG='/tmp/dashboard_code.zip';K=G.replace('.zip','');'\\n            Download the codebase\\n        ';V=urllib3.PoolManager();L=V.request('GET',C['CodeDownloadUrl'],preload_content=R)\n\
+                    \t\tif L.status!=200:return R\n\t\twith L as W,open(G,'wb')as X:shutil.copyfileobj(W,X)\n\t\t'\\n            Unzip the downloaded code\\n        '\n\t\twith zipfile.ZipFile(G,'r')as Y:Y.extractall(K)\n\
+                    \t\t'\\n            For each file in the local code directory\\n        '\n\t\tfor B in glob.iglob(K+'**/**',recursive=True):\n\t\t\t\"\\n                If it's one of the dashboard files and\
+                    \ it's a file, not a directory, we'll upload it to S3\\n            \"\n\t\t\tif S in B and os.path.isfile(B):\n\t\t\t\ttry:Z=B.split(S)[1];E.upload_file(B,C[J],Z,ExtraArgs={'ContentType':mimetypes.guess_type(B)[0]})\n\
+                    \t\t\t\texcept boto3_client_error as H:print('Failed to Upload Dashboard File: '+str(H));return cfnresponse.send(A,D,cfnresponse.FAILED,F)\n\telif A[Q]in['Delete']:\n\t\t\"\\n            Here,\
+                    \ we'll delete all objects, versions, and delete markers from the bucket.\\n        \";a=E.get_paginator('list_object_versions');I=[]\n\t\tfor M in a.paginate(Bucket=C[J]):\n\t\t\tfor N in['Versions','DeleteMarkers']:\n\
+                    \t\t\t\tif N in M:\n\t\t\t\t\tfor O in M[N]:I.append({T:O[T],U:O[U]})\n\t\tfor P in range(0,len(I),1000):\n\t\t\ttry:b=E.delete_objects(Bucket=C[J],Delete={'Objects':I[P:P+1000],'Quiet':True})\n\
+                    \t\t\texcept boto3_client_error as H:print('Failed to Delete S3 Objects: '+str(H));return cfnresponse.send(A,D,cfnresponse.FAILED,F)\n\treturn cfnresponse.send(A,D,cfnresponse.SUCCESS,F)"
+                Description: Downloads dashboard code from a remote repo and deploys it to Amazon S3
+                Environment:
+                  Variables:
+                    CODE_BUCKET_NAME: !Ref 'Bucket'
+                    CODE_DOWNLOAD_URL: !Ref 'CodeDownloadUrl'
+                Handler: index.handler
+                Layers:
+                  - !Join
+                    - ''
+                    - - '{{resolve:ssm:/'
+                      - !Ref 'MainStackName'
+                      - /RegionalLambdaLayerVersionArn}}
+                MemorySize: 128
+                Role: !GetAtt 'DashboardCodeDeployerRole.Arn'
+                Runtime: python3.11
+                Timeout: 30
+                TracingConfig:
+                  Mode: PassThrough
+              Type: AWS::Lambda::Function
+            DashboardCodeDeployerLogGroup:
+              DeletionPolicy: Delete
+              DependsOn:
+                - DashboardCodeDeployer
+              Properties:
+                LogGroupName: !Join
+                  - ''
+                  - - /aws/lambda/
+                    - !Ref 'DashboardCodeDeployer'
+                RetentionInDays: 30
+              Type: AWS::Logs::LogGroup
+            DashboardCodeDeployerResource:
+              DependsOn:
+                - Bucket
+                - DashboardCodeDeployer
+                - DashboardCodeDeployerLogGroup
+              Properties:
+                Properties:
+                  CodeBucketName: !Ref 'Bucket'
+                  CodeDownloadUrl: !Ref 'CodeDownloadUrl'
+                ServiceToken: !GetAtt 'DashboardCodeDeployer.Arn'
+                Type: Custom::DeployDashboardCode
+                Version: '1.0'
+              Type: AWS::CloudFormation::CustomResource
+            DashboardCodeDeployerRole:
+              DependsOn: []
+              Properties:
+                AssumeRolePolicyDocument:
+                  Statement:
+                    - Action:
+                        - sts:AssumeRole
+                      Effect: Allow
+                      Principal:
+                        Service:
+                          - lambda.amazonaws.com
+                ManagedPolicyArns:
+                  - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+                MaxSessionDuration: 3600
+                Policies:
+                  - PolicyDocument:
+                      Statement:
+                        - Action:
+                            - s3:PutObject
+                            - s3:ListBucket
+                            - s3:DeleteObject
+                            - s3:ListBucketVersions
+                            - s3:DeleteObjectVersion
+                          Effect: Allow
+                          Resource:
+                            - !GetAtt 'Bucket.Arn'
+                            - !Join
+                              - ''
+                              - - !GetAtt 'Bucket.Arn'
+                                - /*
+                          Sid: PutS3Objects
+                    PolicyName: main-policy
+              Type: AWS::IAM::Role
+            DnsRecord:
+              DependsOn:
+                - CloudFrontDistribution
+              Properties:
+                HostedZoneId: !Ref 'PublicHostedZoneId'
+                RecordSets:
+                  - AliasTarget:
+                      DNSName: !GetAtt 'CloudFrontDistribution.DomainName'
+                      HostedZoneId: Z2FDTNDATAQYW2
+                    Name: !Join
+                      - .
+                      - - dashboard
+                        - !Ref 'PublicFqdn'
+                    Type: A
+              Type: AWS::Route53::RecordSetGroup
+            ResponseHeadersPolicy:
+              Properties:
+                ResponseHeadersPolicyConfig:
+                  CorsConfig:
+                    AccessControlAllowCredentials: false
+                    AccessControlAllowHeaders:
+                      Items:
+                        - '*'
+                    AccessControlAllowMethods:
+                      Items:
+                        - GET
+                        - POST
+                        - OPTIONS
+                    AccessControlAllowOrigins:
+                      Items:
+                        - '*'
+                    AccessControlExposeHeaders:
+                      Items:
+                        - '*'
+                    OriginOverride: false
+                  Name: !Join
+                    - ''
+                    - - !Ref 'MainStackName'
+                      - -CORS-With-Preflight
+              Type: AWS::CloudFront::ResponseHeadersPolicy
+            TlsCertificate:
+              Properties:
+                DomainName: !Join
+                  - .
+                  - - dashboard
+                    - !Ref 'PublicFqdn'
+                DomainValidationOptions:
+                  - DomainName: !Join
+                      - .
+                      - - dashboard
+                        - !Ref 'PublicFqdn'
+                    HostedZoneId: !Ref 'PublicHostedZoneId'
+                ValidationMethod: DNS
+              Type: AWS::CertificateManager::Certificate
+      Type: AWS::CloudFormation::StackSet
+  FailoverDatabasesStackSet:
+      DependsOn:
+        - StackSetExecutionRole
+        - StackSetAdministrationRole
+        - CustomResourcesStackSet
+        - NetworkingStackSet
+        - PrimaryDatabasesStackSet
+      Properties:
+        AdministrationRoleARN: !GetAtt 'StackSetAdministrationRole.Arn'
+        CallAs: SELF
+        Capabilities:
+          - CAPABILITY_IAM
+          - CAPABILITY_AUTO_EXPAND
+        Description: Multi-Region RDS - Failover-Databases
+        ExecutionRoleName: !Ref 'StackSetExecutionRole'
+        OperationPreferences:
+          FailureToleranceCount: 0
+          MaxConcurrentCount: 2
+          RegionConcurrencyType: PARALLEL
         Parameters:
-          CodeDownloadUrl:
-            Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
-            Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
-            Type: String
-          DatabaseAdminPassword:
-            Description: The password to be used for the RDS Aurora admin account.
-            NoEcho: true
-            Type: String
-          DatabaseAdminUsername:
-            Description: The username to be used for the RDS Aurora admin account.
-            Type: String
-          FailoverDatabaseSubnetZoneACidr:
-            Default: 10.10.10.0/24
-            Description: The CIDR range you wish to use for your primary database subnet.
-            Type: String
-          FailoverDatabaseSubnetZoneBCidr:
-            Default: 10.10.13.0/24
-            Description: The CIDR range you wish to use for your failover database subnet.
-            Type: String
-          FailoverPrivateSubnetZoneACidr:
-            Default: 10.10.9.0/24
-            Description: The CIDR range you wish to use for your primary private subnet.
-            Type: String
-          FailoverPrivateSubnetZoneBCidr:
-            Default: 10.10.12.0/24
-            Description: The CIDR range you wish to use for your failover private subnet.
-            Type: String
-          FailoverPublicSubnetZoneACidr:
-            Default: 10.10.8.0/24
-            Description: The CIDR range you wish to use for your primary public subnet.
-            Type: String
-          FailoverPublicSubnetZoneBCidr:
-            Default: 10.10.11.0/24
-            Description: The CIDR range you wish to use for your failover public subnet.
-            Type: String
-          FailoverRegionName:
-            Default: us-east-2
-            Description: The name of the failover region (e.g., us-east-1). You may choose any AWS Region that supports the required services. The primary and failover regions must be different.
-            Type: String
-          FailoverVpcCidr:
-            Default: 10.10.8.0/21
-            Description: The CIDR range you wish to use for your VPC.
-            Type: String
-          MainStackName:
-            Type: String
-          PrimaryDatabaseSubnetZoneACidr:
-            Default: 10.10.2.0/24
-            Description: The CIDR range you wish to use for your primary database subnet.
-            Type: String
-          PrimaryDatabaseSubnetZoneBCidr:
-            Default: 10.10.5.0/24
-            Description: The CIDR range you wish to use for your failover database subnet.
-            Type: String
-          PrimaryPrivateSubnetZoneACidr:
-            Default: 10.10.1.0/24
-            Description: The CIDR range you wish to use for your primary private subnet.
-            Type: String
-          PrimaryPrivateSubnetZoneBCidr:
-            Default: 10.10.4.0/24
-            Description: The CIDR range you wish to use for your failover private subnet.
-            Type: String
-          PrimaryPublicSubnetZoneACidr:
-            Default: 10.10.0.0/24
-            Description: The CIDR range you wish to use for your primary public subnet.
-            Type: String
-          PrimaryPublicSubnetZoneBCidr:
-            Default: 10.10.3.0/24
-            Description: The CIDR range you wish to use for your failover public subnet.
-            Type: String
-          PrimaryRegionName:
-            Default: us-east-1
-            Description: The name of the primary region (e.g., us-east-1). You may choose any AWS Region that supports the required services. The primary and failover regions must be different.
-            Type: String
-          PrimaryVpcCidr:
-            Default: 10.10.0.0/21
-            Description: The CIDR range you wish to use for your VPC.
-            Type: String
-          PublicFqdn:
-            Description: >-
-              The FQDN to be used by this application (e.g., multi-region-aurora.example.com). An Amazon ACM Certificate will be issued for this FQDN and attached to an Amazon ALB. This FQDN should NOT have a DNS
-              record currently defined in the corresponding Route 53 Hosted Zone.
-            Type: String
-          PublicHostedZoneId:
-            Description: The ID of the public Route 53 Hosted Zone corresponding to the public Service FQDN.
-            Type: String
-        Resources:
-          AppDbAdminSecret:
-            Properties:
-              Description: !Join
-                - ''
-                - - 'Failover App DB Cluster Admin Account for '
-                  - !Ref 'MainStackName'
-              SecretString: !Join
-                - ''
-                - - '{"username": "'
-                  - !Ref 'DatabaseAdminUsername'
-                  - '", "password": "'
-                  - !Ref 'DatabaseAdminPassword'
-                  - '", "database": "template1"}'
-            Type: AWS::SecretsManager::Secret
-          AppDbClusterDeleter:
-            Condition: IsFailoverRegion
-            DependsOn:
-              - AppDbSubnetGroup
-              - FailoverAppCluster
-              - RdsClusterDeleterLogGroup
-            Properties:
-              Properties:
-                ClusterArn: !GetAtt 'FailoverAppCluster.DBClusterArn'
-                ClusterIdentifier: !Ref 'FailoverAppCluster'
-              ServiceToken: !GetAtt 'RdsClusterDeleter.Arn'
-              Type: Custom::DeleteRdsCluster
-              Version: '1.0'
-            Type: AWS::CloudFormation::CustomResource
-          AppDbProxy:
-            Properties:
-              Auth:
-                - SecretArn: !Ref 'AppDbAdminSecret'
-              DBProxyName: !Ref 'FailoverAppCluster'
-              EngineFamily: POSTGRESQL
-              RequireTLS: true
-              RoleArn: !GetAtt 'DbProxyRole.Arn'
-              VpcSecurityGroupIds:
-                - !Ref 'DbProxySecurityGroup'
-              VpcSubnetIds:
-                - !Join
-                  - ''
-                  - - '{{resolve:ssm:/'
-                    - !Ref 'MainStackName'
-                    - /DatabaseSubnetZoneAId}}
-                - !Join
-                  - ''
-                  - - '{{resolve:ssm:/'
-                    - !Ref 'MainStackName'
-                    - /DatabaseSubnetZoneBId}}
-            Type: AWS::RDS::DBProxy
-          AppDbProxyReaderEndpoint:
-            DependsOn:
-              - AppDbProxy
-            Properties:
-              DBProxyEndpointName: !Join
-                - '-'
-                - - !Ref 'MainStackName'
-                  - app
-                  - reader
-              DBProxyName: !Ref 'AppDbProxy'
-              TargetRole: READ_ONLY
-              VpcSecurityGroupIds:
-                - !Ref 'DbProxySecurityGroup'
-              VpcSubnetIds:
-                - !Join
-                  - ''
-                  - - '{{resolve:ssm:/'
-                    - !Ref 'MainStackName'
-                    - /DatabaseSubnetZoneAId}}
-                - !Join
-                  - ''
-                  - - '{{resolve:ssm:/'
-                    - !Ref 'MainStackName'
-                    - /DatabaseSubnetZoneBId}}
-            Type: AWS::RDS::DBProxyEndpoint
-          AppDbProxyTargetGroup:
-            DependsOn:
-              - AppDbProxy
-              - FailoverAppInstance1
-            Properties:
-              DBClusterIdentifiers:
-                - !Ref 'FailoverAppCluster'
-              DBProxyName: !Ref 'AppDbProxy'
-              TargetGroupName: default
-            Type: AWS::RDS::DBProxyTargetGroup
-          AppDbSubnetGroup:
-            Properties:
-              DBSubnetGroupDescription: App Database Subnets
-              DBSubnetGroupName: !Join
-                - ''
-                - - !Ref 'AWS::StackName'
-                  - !Join
-                    - ''
-                    - !Split
-                      - subnet-
-                      - !Join
-                        - '-'
-                        - - !Join
-                            - ''
-                            - - '{{resolve:ssm:/'
-                              - !Ref 'MainStackName'
-                              - /
-                              - Database
-                              - SubnetZoneAId}}
-                          - !Join
-                            - ''
-                            - - '{{resolve:ssm:/'
-                              - !Ref 'MainStackName'
-                              - /
-                              - Database
-                              - SubnetZoneAId}}
-              SubnetIds:
-                - !Join
-                  - ''
-                  - - '{{resolve:ssm:/'
-                    - !Ref 'MainStackName'
-                    - /
-                    - Database
-                    - SubnetZoneAId}}
-                - !Join
-                  - ''
-                  - - '{{resolve:ssm:/'
-                    - !Ref 'MainStackName'
-                    - /
-                    - Database
-                    - SubnetZoneBId}}
-            Type: AWS::RDS::DBSubnetGroup
-          ClusterParameterGroup:
-            Properties:
-              Description: !Join
-                - ''
-                - - !Ref 'AWS::StackName'
-                  - ' - Cluster Param Group'
-              Family: aurora-postgresql13
-              Parameters:
-                rds.logical_replication: 1
-                wal_sender_timeout: 240000
-            Type: AWS::RDS::DBClusterParameterGroup
-          DbClusterSecurityGroup:
-            DependsOn:
-              - DbProxySecurityGroup
-            Properties:
-              GroupDescription: RDS Security Group
-              SecurityGroupEgress: []
-              SecurityGroupIngress:
-                - Description: DB Access from In-Region Lambda Functions
-                  FromPort: 5432
-                  IpProtocol: tcp
-                  SourceSecurityGroupId: !Join
-                    - ''
-                    - - '{{resolve:ssm:/'
-                      - !Ref 'MainStackName'
-                      - /LambdaSecurityGroupId}}
-                  ToPort: 5432
-                - Description: DB Access from In-Region RDS Proxy
-                  FromPort: 5432
-                  IpProtocol: tcp
-                  SourceSecurityGroupId: !Ref 'DbProxySecurityGroup'
-                  ToPort: 5432
-                - CidrIp: !If
-                    - IsPrimaryRegion
-                    - !Ref 'FailoverPrivateSubnetZoneACidr'
-                    - !Ref 'PrimaryPrivateSubnetZoneACidr'
-                  Description: !Join
-                    - ''
-                    - - 'DB Access from Lambda Functions in '
-                      - !If
-                        - IsPrimaryRegion
-                        - !Ref 'FailoverRegionName'
-                        - !Ref 'PrimaryRegionName'
-                      - a
-                  FromPort: 5432
-                  IpProtocol: tcp
-                  ToPort: 5432
-                - CidrIp: !If
-                    - IsPrimaryRegion
-                    - !Ref 'FailoverPrivateSubnetZoneBCidr'
-                    - !Ref 'PrimaryPrivateSubnetZoneBCidr'
-                  Description: !Join
-                    - ''
-                    - - 'DB Access from Lambda Functions in '
-                      - !If
-                        - IsPrimaryRegion
-                        - !Ref 'FailoverRegionName'
-                        - !Ref 'PrimaryRegionName'
-                      - b
-                  FromPort: 5432
-                  IpProtocol: tcp
-                  ToPort: 5432
-              VpcId: !Join
-                - ''
-                - - '{{resolve:ssm:/'
-                  - !Ref 'MainStackName'
-                  - /RegionalVpcId}}
-            Type: AWS::EC2::SecurityGroup
-          DbProxyRole:
-            DependsOn:
-              - AppDbAdminSecret
-            Properties:
-              AssumeRolePolicyDocument:
-                Statement:
-                  - Action:
-                      - sts:AssumeRole
-                    Effect: Allow
-                    Principal:
-                      Service:
-                        - rds.amazonaws.com
-              ManagedPolicyArns:
-                - arn:aws:iam::aws:policy/AdministratorAccess
-              Policies:
-                - PolicyDocument:
-                    Statement:
-                      - Action:
-                          - secretsmanager:GetSecretValue
-                        Effect: Allow
-                        Resource:
-                          - !Ref 'AppDbAdminSecret'
-                  PolicyName: main-policy
-            Type: AWS::IAM::Role
-          DbProxySecurityGroup:
-            Properties:
-              GroupDescription: RDS Proxy Security Group
-              SecurityGroupEgress: []
-              SecurityGroupIngress:
-                - Description: DB Access from Lambda
-                  FromPort: 5432
-                  IpProtocol: tcp
-                  SourceSecurityGroupId: !Join
-                    - ''
-                    - - '{{resolve:ssm:/'
-                      - !Ref 'MainStackName'
-                      - /LambdaSecurityGroupId}}
-                  ToPort: 5432
-                - CidrIp: !If
-                    - IsPrimaryRegion
-                    - !Ref 'FailoverPrivateSubnetZoneACidr'
-                    - !Ref 'PrimaryPrivateSubnetZoneACidr'
-                  Description: !Join
-                    - ''
-                    - - 'DB Access from Lambda Functions in '
-                      - !If
-                        - IsPrimaryRegion
-                        - !Ref 'FailoverRegionName'
-                        - !Ref 'PrimaryRegionName'
-                      - a
-                  FromPort: 5432
-                  IpProtocol: tcp
-                  ToPort: 5432
-                - CidrIp: !If
-                    - IsPrimaryRegion
-                    - !Ref 'FailoverPrivateSubnetZoneBCidr'
-                    - !Ref 'PrimaryPrivateSubnetZoneBCidr'
-                  Description: !Join
-                    - ''
-                    - - 'DB Access from Lambda Functions in '
-                      - !If
-                        - IsPrimaryRegion
-                        - !Ref 'FailoverRegionName'
-                        - !Ref 'PrimaryRegionName'
-                      - b
-                  FromPort: 5432
-                  IpProtocol: tcp
-                  ToPort: 5432
-              VpcId: !Join
-                - ''
-                - - '{{resolve:ssm:/'
-                  - !Ref 'MainStackName'
-                  - /RegionalVpcId}}
-            Type: AWS::EC2::SecurityGroup
-          DemoDbSubnetGroup:
-            Properties:
-              DBSubnetGroupDescription: Demo Database Subnets
-              DBSubnetGroupName: !Join
-                - ''
-                - - !Ref 'AWS::StackName'
-                  - !Join
-                    - ''
-                    - !Split
-                      - subnet-
-                      - !Join
-                        - '-'
-                        - - !Join
-                            - ''
-                            - - '{{resolve:ssm:/'
-                              - !Ref 'MainStackName'
-                              - /
-                              - Private
-                              - SubnetZoneAId}}
-                          - !Join
-                            - ''
-                            - - '{{resolve:ssm:/'
-                              - !Ref 'MainStackName'
-                              - /
-                              - Private
-                              - SubnetZoneAId}}
-              SubnetIds:
-                - !Join
-                  - ''
-                  - - '{{resolve:ssm:/'
-                    - !Ref 'MainStackName'
-                    - /
-                    - Private
-                    - SubnetZoneAId}}
-                - !Join
-                  - ''
-                  - - '{{resolve:ssm:/'
-                    - !Ref 'MainStackName'
-                    - /
-                    - Private
-                    - SubnetZoneBId}}
-            Type: AWS::RDS::DBSubnetGroup
-          FailoverAppCluster:
-            Condition: IsFailoverRegion
-            DependsOn:
-              - AppDbSubnetGroup
-              - PrimaryRegionDbExportRetriever
-            Properties:
-              BackupRetentionPeriod: 30
-              DBSubnetGroupName: !Ref 'AppDbSubnetGroup'
-              DeletionProtection: false
-              EnableIAMDatabaseAuthentication: false
-              Engine: aurora-postgresql
-              EngineMode: provisioned
-              EngineVersion: '13.18'
-              GlobalClusterIdentifier: !GetAtt 'PrimaryRegionDbExportRetriever.GlobalAppDbClusterIdentifier'
-              KmsKeyId: !If
-                - IsPrimaryRegion
-                - !Ref 'KMSKey'
-                - !Ref 'KMSKeyReplica'
-              Port: 5432
-              RestoreType: copy-on-write
-              StorageEncrypted: true
-              VpcSecurityGroupIds:
-                - !Ref 'DbClusterSecurityGroup'
-            Type: AWS::RDS::DBCluster
-          FailoverAppDbAdminSecretAttachment:
-            Condition: IsFailoverRegion
-            DependsOn:
-              - AppDbAdminSecret
-              - FailoverAppCluster
-            Properties:
-              SecretId: !Ref 'AppDbAdminSecret'
-              TargetId: !Ref 'FailoverAppCluster'
-              TargetType: AWS::RDS::DBCluster
-            Type: AWS::SecretsManager::SecretTargetAttachment
-          FailoverAppInstance1:
-            Condition: IsFailoverRegion
-            DependsOn:
-              - AppDbSubnetGroup
-              - FailoverAppCluster
-              - AppDbClusterDeleter
-            Properties:
-              AllowMajorVersionUpgrade: false
-              AutoMinorVersionUpgrade: true
-              DBClusterIdentifier: !Ref 'FailoverAppCluster'
-              DBInstanceClass: db.r6g.large
-              EnablePerformanceInsights: false
-              Engine: aurora-postgresql
-              MultiAZ: false
-            Type: AWS::RDS::DBInstance
-          FailoverAppInstance2:
-            Condition: IsFailoverRegion
-            DependsOn:
-              - AppDbSubnetGroup
-              - FailoverAppCluster
-              - AppDbClusterDeleter
-            Properties:
-              AllowMajorVersionUpgrade: false
-              AutoMinorVersionUpgrade: true
-              DBClusterIdentifier: !Ref 'FailoverAppCluster'
-              DBInstanceClass: db.r6g.large
-              EnablePerformanceInsights: false
-              Engine: aurora-postgresql
-              MultiAZ: false
-            Type: AWS::RDS::DBInstance
-          GlobalAppDbClusterIdentifierParam:
-            Condition: ''
-            Properties:
-              Description: !Join
-                - ''
-                - - 'Global App DB Cluster Identifier for '
-                  - !Ref 'AWS::StackName'
-                  - ' stack'
-              Name: !Join
-                - ''
-                - - /
-                  - !Ref 'MainStackName'
-                  - /
-                  - GlobalAppDbClusterIdentifier
-              Tier: Standard
-              Type: String
+          - ParameterKey: MainStackName
+            ParameterValue: !Ref 'AWS::StackName'
+          - ParameterKey: DatabaseAdminUsername
+            ParameterValue: !Ref 'DatabaseAdminUsername'
+          - ParameterKey: DatabaseAdminPassword
+            ParameterValue: !Ref 'DatabaseAdminPassword'
+          - ParameterKey: PrimaryRegionName
+            ParameterValue: !Ref 'PrimaryRegionName'
+          - ParameterKey: PrimaryVpcCidr
+            ParameterValue: !Ref 'PrimaryVpcCidr'
+          - ParameterKey: PrimaryPublicSubnetZoneACidr
+            ParameterValue: !Ref 'PrimaryPublicSubnetZoneACidr'
+          - ParameterKey: PrimaryPublicSubnetZoneBCidr
+            ParameterValue: !Ref 'PrimaryPublicSubnetZoneBCidr'
+          - ParameterKey: PrimaryPrivateSubnetZoneACidr
+            ParameterValue: !Ref 'PrimaryPrivateSubnetZoneACidr'
+          - ParameterKey: PrimaryPrivateSubnetZoneBCidr
+            ParameterValue: !Ref 'PrimaryPrivateSubnetZoneBCidr'
+          - ParameterKey: PrimaryDatabaseSubnetZoneACidr
+            ParameterValue: !Ref 'PrimaryDatabaseSubnetZoneACidr'
+          - ParameterKey: PrimaryDatabaseSubnetZoneBCidr
+            ParameterValue: !Ref 'PrimaryDatabaseSubnetZoneBCidr'
+          - ParameterKey: FailoverRegionName
+            ParameterValue: !Ref 'FailoverRegionName'
+          - ParameterKey: FailoverVpcCidr
+            ParameterValue: !Ref 'FailoverVpcCidr'
+          - ParameterKey: FailoverPublicSubnetZoneACidr
+            ParameterValue: !Ref 'FailoverPublicSubnetZoneACidr'
+          - ParameterKey: FailoverPublicSubnetZoneBCidr
+            ParameterValue: !Ref 'FailoverPublicSubnetZoneBCidr'
+          - ParameterKey: FailoverPrivateSubnetZoneACidr
+            ParameterValue: !Ref 'FailoverPrivateSubnetZoneACidr'
+          - ParameterKey: FailoverPrivateSubnetZoneBCidr
+            ParameterValue: !Ref 'FailoverPrivateSubnetZoneBCidr'
+          - ParameterKey: FailoverDatabaseSubnetZoneACidr
+            ParameterValue: !Ref 'FailoverDatabaseSubnetZoneACidr'
+          - ParameterKey: FailoverDatabaseSubnetZoneBCidr
+            ParameterValue: !Ref 'FailoverDatabaseSubnetZoneBCidr'
+          - ParameterKey: PublicFqdn
+            ParameterValue: !Ref 'PublicFqdn'
+          - ParameterKey: PublicHostedZoneId
+            ParameterValue: !Ref 'PublicHostedZoneId'
+          - ParameterKey: CodeDownloadUrl
+            ParameterValue: !Ref 'CodeDownloadUrl'
+        PermissionModel: SELF_MANAGED
+        StackInstancesGroup:
+          - DeploymentTargets:
+              Accounts:
+                - !Ref 'AWS::AccountId'
+            Regions:
+              - !Ref 'FailoverRegionName'
+        StackSetName: !Join
+          - '-'
+          - - !Ref 'AWS::StackName'
+            - Failover-Databases
+        TemplateBody: |
+          Conditions:
+            IsFailoverRegion: !Not
+              - !Equals
+                - !Ref 'PrimaryRegionName'
+                - !Ref 'AWS::Region'
+            IsPrimaryRegion: !Equals
+              - !Ref 'PrimaryRegionName'
+              - !Ref 'AWS::Region'
+          Metadata:
+            AWS::CloudFormation::Interface:
+              ParameterGroups: []
+              ParameterLabels: {}
+            Comments: ''
+            CreatedBy: Carter Meyers (AWS)
+            Description: This application deploys a Global RDS Aurora cluster.
+            LastUpdated: September 25, 2024
+            Version: v2.11
+          Outputs:
+            GlobalAppDbClusterIdentifier:
+              Condition: ''
+              Export:
+                Name: !Join
+                  - '-'
+                  - - !Ref 'MainStackName'
+                    - GlobalAppDbClusterIdentifier
               Value: !GetAtt 'PrimaryRegionDbExportRetriever.GlobalAppDbClusterIdentifier'
-            Type: AWS::SSM::Parameter
-          KMSKey:
-            Condition: IsPrimaryRegion
-            Properties:
-              Description: !Join
-                - ''
-                - - 'Muli-Region KMS Key for '
-                  - !Ref 'AWS::StackName'
-              EnableKeyRotation: true
-              Enabled: true
-              KeyPolicy:
-                Id: default-key-policy
-                Statement:
-                  - Action: kms:*
-                    Effect: Allow
-                    Principal:
-                      AWS: !Join
-                        - ''
-                        - - 'arn:aws:iam::'
-                          - !Ref 'AWS::AccountId'
-                          - :root
-                    Resource: '*'
-                    Sid: Enable IAM User Permissions
-                Version: '2012-10-17'
-              MultiRegion: true
-            Type: AWS::KMS::Key
-          KMSKeyReplica:
-            Condition: IsFailoverRegion
-            Properties:
-              Enabled: true
-              KeyPolicy:
-                Id: default-key-policy
-                Statement:
-                  - Action: kms:*
-                    Effect: Allow
-                    Principal:
-                      AWS: !Join
-                        - ''
-                        - - 'arn:aws:iam::'
-                          - !Ref 'AWS::AccountId'
-                          - :root
-                    Resource: '*'
-                    Sid: Enable IAM User Permissions
-                Version: '2012-10-17'
-              PrimaryKeyArn: !GetAtt 'PrimaryRegionCmkRetriever.RegionalKmsKeyArn'
-            Type: AWS::KMS::ReplicaKey
-          PrimaryRegionCmkRetriever:
-            Condition: IsFailoverRegion
-            Properties:
-              Properties:
-                ExportPrefix: !Ref 'MainStackName'
-                Region: !Ref 'PrimaryRegionName'
-                Version: 1.05
-              ServiceToken: !Join
-                - ''
-                - - '{{resolve:ssm:/'
-                  - !Ref 'MainStackName'
-                  - /RegionalCfnExportRetrieverArn}}
-              Type: Custom::GetCFNExports
-              Version: '1.0'
-            Type: AWS::CloudFormation::CustomResource
-          PrimaryRegionDbExportRetriever:
-            Properties:
-              Properties:
-                ExportPrefix: !Ref 'MainStackName'
-                Region: !Ref 'PrimaryRegionName'
-                Version: 1.04
-              ServiceToken: !Join
-                - ''
-                - - '{{resolve:ssm:/'
-                  - !Ref 'MainStackName'
-                  - /RegionalCfnExportRetrieverArn}}
-              Type: Custom::GetCFNExports
-              Version: '1.0'
-            Type: AWS::CloudFormation::CustomResource
-          RdsClusterDeleter:
-            Condition: IsFailoverRegion
-            DependsOn:
-              - RdsClusterDeleterRole
-            Properties:
-              Architectures:
-                - x86_64
-              Code:
-                ZipFile: "import sys\nsys.path.append('/opt')\n\nimport os\nimport json\nimport time\nimport boto3\nimport cfnresponse\nfrom botocore.exceptions import ClientError as boto3_client_error\n\n'''\n\
-                  \    ClusterArn\n    ClusterIdentifier\n'''\ndef handler(event, context):\n    \n    print(json.dumps(event))\n    \n    arguments = event['ResourceProperties']['Properties']\n    operation =\
-                  \ event['ResourceProperties']['Type'].replace('Custom::', '')\n    \n    response_data = {}\n    \n    if event['RequestType'] in ['Delete']:\n        \n        rds_client = boto3.client('rds')\n\
-                  \        \n        try:\n            \n            '''\n                First, we'll get the cluster's current status\n            '''\n            describe_cluster_resp = rds_client.describe_db_clusters(\n\
-                  \                DBClusterIdentifier = arguments['ClusterArn'],\n            )\n            \n            '''\n                If there's a cluster matching this identifier\n            '''\n\
-                  \            if len(describe_cluster_resp) > 0:\n                \n                cluster_status = describe_cluster_resp['DBClusters'][0]['Status']\n                \n                '''\n  \
-                  \                  If the cluster's current status is AVAILABLE\n                '''\n                if cluster_status in ['available']:\n                    \n                    try:\n    \
-                  \                    \n                        '''\n                            We'll try to delete it\n                        '''\n                        rds_client.delete_db_cluster(\n   \
-                  \                         SkipFinalSnapshot = True,\n                            DBClusterIdentifier = arguments['ClusterIdentifier']\n                        )\n                        \n   \
-                  \                     '''\n                            Now, we'll monitor its deletion and respond only after it's successful.\n                        '''\n                        while True:\n\
-                  \                            \n                            try:\n                                \n                                describe_cluster_resp = rds_client.describe_db_clusters(\n  \
-                  \                                  DBClusterIdentifier = arguments['ClusterArn'],\n                                )\n\n                                time.sleep(5)\n                        \
-                  \        \n                            except boto3_client_error as e:\n                                \n                                if e.response['Error']['Code'] == 'DBClusterNotFoundFault':\n\
-                  \                                    return cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data)\n                                \n                                else:\n    \
-                  \                                print('Failed to Retrieve Cluster: ' + str(e.response))\n                                    return cfnresponse.send(event, context, cfnresponse.FAILED, response_data)\n\
-                  \                            \n                    except boto3_client_error as e:\n                        print('Failed to Delete Cluster: ' + str(e.response))\n                        return\
-                  \ cfnresponse.send(event, context, cfnresponse.FAILED, response_data)\n                \n        except boto3_client_error as e:\n            print('Failed to Retrieve Cluster: ' + str(e.response))\n\
-                  \            return cfnresponse.send(event, context, cfnresponse.FAILED, response_data)\n\n    return cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data)"
-              Description: Deletes the failover cluster once the local instances are deleted
-              Handler: index.handler
-              Layers:
-                - !Join
-                  - ''
-                  - - '{{resolve:ssm:/'
-                    - !Ref 'MainStackName'
-                    - /RegionalLambdaLayerVersionArn}}
-              MemorySize: 128
-              Role: !GetAtt 'RdsClusterDeleterRole.Arn'
-              Runtime: python3.11
-              Timeout: 300
-              TracingConfig:
-                Mode: PassThrough
-            Type: AWS::Lambda::Function
-          RdsClusterDeleterLogGroup:
-            Condition: IsFailoverRegion
-            DeletionPolicy: Delete
-            DependsOn:
-              - RdsClusterDeleter
-            Properties:
-              LogGroupName: !Join
-                - ''
-                - - /aws/lambda/
-                  - !Ref 'RdsClusterDeleter'
-              RetentionInDays: 30
-            Type: AWS::Logs::LogGroup
-          RdsClusterDeleterRole:
-            Condition: IsFailoverRegion
-            DependsOn: []
-            Properties:
-              AssumeRolePolicyDocument:
-                Statement:
-                  - Action:
-                      - sts:AssumeRole
-                    Effect: Allow
-                    Principal:
-                      Service:
-                        - lambda.amazonaws.com
-              ManagedPolicyArns:
-                - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-              MaxSessionDuration: 3600
-              Policies:
-                - PolicyDocument:
-                    Statement:
-                      - Action:
-                          - rds:DeleteDBCluster
-                          - rds:DescribeDBClusters
-                        Effect: Allow
-                        Resource:
-                          - !GetAtt 'FailoverAppCluster.DBClusterArn'
-                        Sid: DescribeAndDeleteDBCluster
-                  PolicyName: main-policy
-            Type: AWS::IAM::Role
-          RegionalAppDbAdminSecretArnParam:
-            Condition: ''
-            Properties:
-              Description: !Join
-                - ''
-                - - 'App DB Admin Secret ARN for '
-                  - !Ref 'AWS::StackName'
-                  - ' stack'
-              Name: !Join
-                - ''
-                - - /
-                  - !Ref 'MainStackName'
-                  - /
-                  - RegionalAppDbAdminSecretArn
-              Tier: Standard
-              Type: String
+            RegionalAppDbAdminSecretArn:
+              Condition: ''
+              Export:
+                Name: !Join
+                  - '-'
+                  - - !Ref 'MainStackName'
+                    - AppDbAdminSecretArn
               Value: !Ref 'AppDbAdminSecret'
-            Type: AWS::SSM::Parameter
-          RegionalAppDbClusterArnParam:
-            Condition: ''
-            Properties:
-              Description: !Join
-                - ''
-                - - 'Regional App DB Cluster ARN for '
-                  - !Ref 'AWS::StackName'
-                  - ' stack'
-              Name: !Join
-                - ''
-                - - /
-                  - !Ref 'MainStackName'
-                  - /
-                  - RegionalAppDbClusterArn
-              Tier: Standard
-              Type: String
+            RegionalAppDbClusterArn:
+              Condition: ''
               Value: !GetAtt 'FailoverAppCluster.DBClusterArn'
-            Type: AWS::SSM::Parameter
-          RegionalAppDbClusterIdentifierParam:
-            Condition: ''
-            Properties:
-              Description: !Join
-                - ''
-                - - 'Regional App DB Cluster Identifier for '
-                  - !Ref 'AWS::StackName'
-                  - ' stack'
-              Name: !Join
-                - ''
-                - - /
-                  - !Ref 'MainStackName'
-                  - /
-                  - RegionalAppDbClusterIdentifier
-              Tier: Standard
-              Type: String
+            RegionalAppDbClusterIdentifier:
+              Condition: ''
               Value: !Ref 'FailoverAppCluster'
-            Type: AWS::SSM::Parameter
-          RegionalAppDbClusterReaderEndpointParam:
-            Condition: ''
-            Properties:
-              Description: !Join
-                - ''
-                - - 'App DB Cluster Reader Endpoint for '
-                  - !Ref 'AWS::StackName'
-                  - ' stack'
-              Name: !Join
-                - ''
-                - - /
-                  - !Ref 'MainStackName'
-                  - /
-                  - RegionalAppDbClusterReaderEndpoint
-              Tier: Standard
-              Type: String
+            RegionalAppDbClusterReaderEndpoint:
+              Condition: ''
+              Export:
+                Name: !Join
+                  - '-'
+                  - - !Ref 'MainStackName'
+                    - RegionalAppDbClusterReaderEndpoint
               Value: !GetAtt 'FailoverAppCluster.ReadEndpoint.Address'
-            Type: AWS::SSM::Parameter
-          RegionalAppDbClusterWriterEndpointParam:
-            Condition: ''
-            Properties:
-              Description: !Join
-                - ''
-                - - 'App DB Cluster Writer Endpoint for '
-                  - !Ref 'AWS::StackName'
-                  - ' stack'
-              Name: !Join
-                - ''
-                - - /
-                  - !Ref 'MainStackName'
-                  - /
-                  - RegionalAppDbClusterWriterEndpoint
-              Tier: Standard
-              Type: String
+            RegionalAppDbClusterWriterEndpoint:
+              Condition: ''
+              Export:
+                Name: !Join
+                  - '-'
+                  - - !Ref 'MainStackName'
+                    - RegionalAppDbClusterWriterEndpoint
               Value: !GetAtt 'FailoverAppCluster.Endpoint.Address'
-            Type: AWS::SSM::Parameter
-          RegionalAppDbProxyArnParam:
-            Condition: ''
-            Properties:
-              Description: !Join
-                - ''
-                - - 'RDS Proxy ARN for '
-                  - !Ref 'AWS::StackName'
-                  - ' stack'
-              Name: !Join
-                - ''
-                - - /
-                  - !Ref 'MainStackName'
-                  - /
-                  - RegionalAppDbProxyArn
-              Tier: Standard
-              Type: String
+            RegionalAppDbProxyArn:
+              Condition: ''
               Value: !GetAtt 'AppDbProxy.DBProxyArn'
-            Type: AWS::SSM::Parameter
-          RegionalAppDbProxyNameParam:
-            Condition: ''
-            Properties:
-              Description: !Join
-                - ''
-                - - 'App DB Proxy name for '
-                  - !Ref 'AWS::StackName'
-                  - ' stack'
-              Name: !Join
-                - ''
-                - - /
-                  - !Ref 'MainStackName'
-                  - /
-                  - RegionalAppDbProxyName
-              Tier: Standard
-              Type: String
+            RegionalAppDbProxyName:
+              Condition: ''
               Value: !Ref 'AppDbProxy'
-            Type: AWS::SSM::Parameter
-          RegionalAppDbProxyPortParam:
-            Condition: ''
-            Properties:
-              Description: !Join
-                - ''
-                - - 'RDS Proxy port for '
-                  - !Ref 'AWS::StackName'
-                  - ' stack'
-              Name: !Join
-                - ''
-                - - /
-                  - !Ref 'MainStackName'
-                  - /
-                  - RegionalAppDbProxyPort
-              Tier: Standard
-              Type: String
+            RegionalAppDbProxyPort:
+              Condition: ''
               Value: !GetAtt 'FailoverAppCluster.Endpoint.Port'
-            Type: AWS::SSM::Parameter
-          RegionalAppDbProxyReaderEndpointParam:
-            Condition: ''
-            Properties:
-              Description: !Join
-                - ''
-                - - 'RDS Proxy reader endpoint for '
-                  - !Ref 'AWS::StackName'
-                  - ' stack'
-              Name: !Join
-                - ''
-                - - /
-                  - !Ref 'MainStackName'
-                  - /
-                  - RegionalAppDbProxyReaderEndpoint
-              Tier: Standard
-              Type: String
+            RegionalAppDbProxyReaderEndpoint:
+              Condition: ''
               Value: !GetAtt 'AppDbProxyReaderEndpoint.Endpoint'
-            Type: AWS::SSM::Parameter
-          RegionalAppDbProxyWriterEndpointParam:
-            Condition: ''
-            Properties:
-              Description: !Join
-                - ''
-                - - 'RDS Proxy writer endpoint for '
-                  - !Ref 'AWS::StackName'
-                  - ' stack'
-              Name: !Join
-                - ''
-                - - /
-                  - !Ref 'MainStackName'
-                  - /
-                  - RegionalAppDbProxyWriterEndpoint
-              Tier: Standard
-              Type: String
+            RegionalAppDbProxyWriterEndpoint:
+              Condition: ''
               Value: !GetAtt 'AppDbProxy.Endpoint'
-            Type: AWS::SSM::Parameter
-          RegionalDemoDbAdminSecretArnParam:
-            Condition: ''
-            Properties:
-              Description: !Join
-                - ''
-                - - 'Demo DB Admin Secret ARN for '
-                  - !Ref 'AWS::StackName'
-                  - ' stack'
-              Name: !Join
-                - ''
-                - - /
-                  - !Ref 'MainStackName'
-                  - /
-                  - RegionalDemoDbAdminSecretArn
-              Tier: Standard
-              Type: String
+            RegionalDemoDbAdminSecretArn:
+              Condition: ''
+              Export:
+                Name: !Join
+                  - '-'
+                  - - !Ref 'MainStackName'
+                    - DemoDbAdminSecretArn
               Value: !Join
                 - ':'
                 - - arn
@@ -6986,68 +6126,928 @@ DashboardStackSet:
                     - !Split
                       - ':'
                       - !GetAtt 'PrimaryRegionDbExportRetriever.DemoDbAdminSecretArn'
-            Type: AWS::SSM::Parameter
-          RegionalDemoDbClusterReaderEndpointParam:
-            Condition: ''
-            Properties:
-              Description: !Join
-                - ''
-                - - 'Demo DB Cluster Reader Endpoint for '
-                  - !Ref 'AWS::StackName'
-                  - ' stack'
-              Name: !Join
-                - ''
-                - - /
-                  - !Ref 'MainStackName'
-                  - /
-                  - RegionalDemoDbClusterReaderEndpoint
-              Tier: Standard
-              Type: String
+            RegionalDemoDbClusterReaderEndpoint:
+              Condition: ''
               Value: !GetAtt 'PrimaryRegionDbExportRetriever.RegionalDemoDbClusterReaderEndpoint'
-            Type: AWS::SSM::Parameter
-          RegionalDemoDbClusterWriterEndpointParam:
-            Condition: ''
-            Properties:
-              Description: !Join
-                - ''
-                - - 'Demo DB Cluster Writer Endpoint for '
-                  - !Ref 'AWS::StackName'
-                  - ' stack'
-              Name: !Join
-                - ''
-                - - /
-                  - !Ref 'MainStackName'
-                  - /
-                  - RegionalDemoDbClusterWriterEndpoint
-              Tier: Standard
-              Type: String
+            RegionalDemoDbClusterWriterEndpoint:
+              Condition: ''
               Value: !GetAtt 'PrimaryRegionDbExportRetriever.RegionalDemoDbClusterWriterEndpoint'
-            Type: AWS::SSM::Parameter
-          RegionalKmsKeyArnParam:
-            Condition: ''
-            Properties:
-              Description: !Join
-                - ''
-                - - 'Regional KMS Key ARN for '
-                  - !Ref 'AWS::StackName'
-                  - ' stack'
-              Name: !Join
-                - ''
-                - - /
-                  - !Ref 'MainStackName'
-                  - /
-                  - RegionalKmsKeyArn
-              Tier: Standard
-              Type: String
+            RegionalKmsKeyArn:
+              Condition: ''
+              Export:
+                Name: !Join
+                  - '-'
+                  - - !Ref 'MainStackName'
+                    - RegionalKmsKeyArn
               Value: !If
                 - IsPrimaryRegion
                 - !GetAtt 'KMSKey.Arn'
                 - !GetAtt 'KMSKeyReplica.Arn'
-            Type: AWS::SSM::Parameter
-        Transform:
-          Name: AWS::SecretsManager-2020-07-23
-    Type: AWS::CloudFormation::StackSet
-  FailoverHandlersStackSet:
+          Parameters:
+            CodeDownloadUrl:
+              Default: https://codeload.github.com/allyman17/amazon-aurora-postgresql-fast-failover-demo/zip/refs/heads/main
+              Description: The URL from which the supporting codebase can be downloaded. This codebase is used to deploy the demo dashboard.
+              Type: String
+            DatabaseAdminPassword:
+              Description: The password to be used for the RDS Aurora admin account.
+              NoEcho: true
+              Type: String
+            DatabaseAdminUsername:
+              Description: The username to be used for the RDS Aurora admin account.
+              Type: String
+            FailoverDatabaseSubnetZoneACidr:
+              Default: 10.10.10.0/24
+              Description: The CIDR range you wish to use for your primary database subnet.
+              Type: String
+            FailoverDatabaseSubnetZoneBCidr:
+              Default: 10.10.13.0/24
+              Description: The CIDR range you wish to use for your failover database subnet.
+              Type: String
+            FailoverPrivateSubnetZoneACidr:
+              Default: 10.10.9.0/24
+              Description: The CIDR range you wish to use for your primary private subnet.
+              Type: String
+            FailoverPrivateSubnetZoneBCidr:
+              Default: 10.10.12.0/24
+              Description: The CIDR range you wish to use for your failover private subnet.
+              Type: String
+            FailoverPublicSubnetZoneACidr:
+              Default: 10.10.8.0/24
+              Description: The CIDR range you wish to use for your primary public subnet.
+              Type: String
+            FailoverPublicSubnetZoneBCidr:
+              Default: 10.10.11.0/24
+              Description: The CIDR range you wish to use for your failover public subnet.
+              Type: String
+            FailoverRegionName:
+              Default: us-east-2
+              Description: The name of the failover region (e.g., us-east-1). You may choose any AWS Region that supports the required services. The primary and failover regions must be different.
+              Type: String
+            FailoverVpcCidr:
+              Default: 10.10.8.0/21
+              Description: The CIDR range you wish to use for your VPC.
+              Type: String
+            MainStackName:
+              Type: String
+            PrimaryDatabaseSubnetZoneACidr:
+              Default: 10.10.2.0/24
+              Description: The CIDR range you wish to use for your primary database subnet.
+              Type: String
+            PrimaryDatabaseSubnetZoneBCidr:
+              Default: 10.10.5.0/24
+              Description: The CIDR range you wish to use for your failover database subnet.
+              Type: String
+            PrimaryPrivateSubnetZoneACidr:
+              Default: 10.10.1.0/24
+              Description: The CIDR range you wish to use for your primary private subnet.
+              Type: String
+            PrimaryPrivateSubnetZoneBCidr:
+              Default: 10.10.4.0/24
+              Description: The CIDR range you wish to use for your failover private subnet.
+              Type: String
+            PrimaryPublicSubnetZoneACidr:
+              Default: 10.10.0.0/24
+              Description: The CIDR range you wish to use for your primary public subnet.
+              Type: String
+            PrimaryPublicSubnetZoneBCidr:
+              Default: 10.10.3.0/24
+              Description: The CIDR range you wish to use for your failover public subnet.
+              Type: String
+            PrimaryRegionName:
+              Default: us-east-1
+              Description: The name of the primary region (e.g., us-east-1). You may choose any AWS Region that supports the required services. The primary and failover regions must be different.
+              Type: String
+            PrimaryVpcCidr:
+              Default: 10.10.0.0/21
+              Description: The CIDR range you wish to use for your VPC.
+              Type: String
+            PublicFqdn:
+              Description: >-
+                The FQDN to be used by this application (e.g., multi-region-aurora.example.com). An Amazon ACM Certificate will be issued for this FQDN and attached to an Amazon ALB. This FQDN should NOT have a DNS
+                record currently defined in the corresponding Route 53 Hosted Zone.
+              Type: String
+            PublicHostedZoneId:
+              Description: The ID of the public Route 53 Hosted Zone corresponding to the public Service FQDN.
+              Type: String
+          Resources:
+            AppDbAdminSecret:
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'Failover App DB Cluster Admin Account for '
+                    - !Ref 'MainStackName'
+                SecretString: !Join
+                  - ''
+                  - - '{"username": "'
+                    - !Ref 'DatabaseAdminUsername'
+                    - '", "password": "'
+                    - !Ref 'DatabaseAdminPassword'
+                    - '", "database": "template1"}'
+              Type: AWS::SecretsManager::Secret
+            AppDbClusterDeleter:
+              Condition: IsFailoverRegion
+              DependsOn:
+                - AppDbSubnetGroup
+                - FailoverAppCluster
+                - RdsClusterDeleterLogGroup
+              Properties:
+                Properties:
+                  ClusterArn: !GetAtt 'FailoverAppCluster.DBClusterArn'
+                  ClusterIdentifier: !Ref 'FailoverAppCluster'
+                ServiceToken: !GetAtt 'RdsClusterDeleter.Arn'
+                Type: Custom::DeleteRdsCluster
+                Version: '1.0'
+              Type: AWS::CloudFormation::CustomResource
+            AppDbProxy:
+              Properties:
+                Auth:
+                  - SecretArn: !Ref 'AppDbAdminSecret'
+                DBProxyName: !Ref 'FailoverAppCluster'
+                EngineFamily: POSTGRESQL
+                RequireTLS: true
+                RoleArn: !GetAtt 'DbProxyRole.Arn'
+                VpcSecurityGroupIds:
+                  - !Ref 'DbProxySecurityGroup'
+                VpcSubnetIds:
+                  - !Join
+                    - ''
+                    - - '{{resolve:ssm:/'
+                      - !Ref 'MainStackName'
+                      - /DatabaseSubnetZoneAId}}
+                  - !Join
+                    - ''
+                    - - '{{resolve:ssm:/'
+                      - !Ref 'MainStackName'
+                      - /DatabaseSubnetZoneBId}}
+              Type: AWS::RDS::DBProxy
+            AppDbProxyReaderEndpoint:
+              DependsOn:
+                - AppDbProxy
+              Properties:
+                DBProxyEndpointName: !Join
+                  - '-'
+                  - - !Ref 'MainStackName'
+                    - app
+                    - reader
+                DBProxyName: !Ref 'AppDbProxy'
+                TargetRole: READ_ONLY
+                VpcSecurityGroupIds:
+                  - !Ref 'DbProxySecurityGroup'
+                VpcSubnetIds:
+                  - !Join
+                    - ''
+                    - - '{{resolve:ssm:/'
+                      - !Ref 'MainStackName'
+                      - /DatabaseSubnetZoneAId}}
+                  - !Join
+                    - ''
+                    - - '{{resolve:ssm:/'
+                      - !Ref 'MainStackName'
+                      - /DatabaseSubnetZoneBId}}
+              Type: AWS::RDS::DBProxyEndpoint
+            AppDbProxyTargetGroup:
+              DependsOn:
+                - AppDbProxy
+                - FailoverAppInstance1
+              Properties:
+                DBClusterIdentifiers:
+                  - !Ref 'FailoverAppCluster'
+                DBProxyName: !Ref 'AppDbProxy'
+                TargetGroupName: default
+              Type: AWS::RDS::DBProxyTargetGroup
+            AppDbSubnetGroup:
+              Properties:
+                DBSubnetGroupDescription: App Database Subnets
+                DBSubnetGroupName: !Join
+                  - ''
+                  - - !Ref 'AWS::StackName'
+                    - !Join
+                      - ''
+                      - !Split
+                        - subnet-
+                        - !Join
+                          - '-'
+                          - - !Join
+                              - ''
+                              - - '{{resolve:ssm:/'
+                                - !Ref 'MainStackName'
+                                - /
+                                - Database
+                                - SubnetZoneAId}}
+                            - !Join
+                              - ''
+                              - - '{{resolve:ssm:/'
+                                - !Ref 'MainStackName'
+                                - /
+                                - Database
+                                - SubnetZoneAId}}
+                SubnetIds:
+                  - !Join
+                    - ''
+                    - - '{{resolve:ssm:/'
+                      - !Ref 'MainStackName'
+                      - /
+                      - Database
+                      - SubnetZoneAId}}
+                  - !Join
+                    - ''
+                    - - '{{resolve:ssm:/'
+                      - !Ref 'MainStackName'
+                      - /
+                      - Database
+                      - SubnetZoneBId}}
+              Type: AWS::RDS::DBSubnetGroup
+            ClusterParameterGroup:
+              Properties:
+                Description: !Join
+                  - ''
+                  - - !Ref 'AWS::StackName'
+                    - ' - Cluster Param Group'
+                Family: aurora-postgresql13
+                Parameters:
+                  rds.logical_replication: 1
+                  wal_sender_timeout: 240000
+              Type: AWS::RDS::DBClusterParameterGroup
+            DbClusterSecurityGroup:
+              DependsOn:
+                - DbProxySecurityGroup
+              Properties:
+                GroupDescription: RDS Security Group
+                SecurityGroupEgress: []
+                SecurityGroupIngress:
+                  - Description: DB Access from In-Region Lambda Functions
+                    FromPort: 5432
+                    IpProtocol: tcp
+                    SourceSecurityGroupId: !Join
+                      - ''
+                      - - '{{resolve:ssm:/'
+                        - !Ref 'MainStackName'
+                        - /LambdaSecurityGroupId}}
+                    ToPort: 5432
+                  - Description: DB Access from In-Region RDS Proxy
+                    FromPort: 5432
+                    IpProtocol: tcp
+                    SourceSecurityGroupId: !Ref 'DbProxySecurityGroup'
+                    ToPort: 5432
+                  - CidrIp: !If
+                      - IsPrimaryRegion
+                      - !Ref 'FailoverPrivateSubnetZoneACidr'
+                      - !Ref 'PrimaryPrivateSubnetZoneACidr'
+                    Description: !Join
+                      - ''
+                      - - 'DB Access from Lambda Functions in '
+                        - !If
+                          - IsPrimaryRegion
+                          - !Ref 'FailoverRegionName'
+                          - !Ref 'PrimaryRegionName'
+                        - a
+                    FromPort: 5432
+                    IpProtocol: tcp
+                    ToPort: 5432
+                  - CidrIp: !If
+                      - IsPrimaryRegion
+                      - !Ref 'FailoverPrivateSubnetZoneBCidr'
+                      - !Ref 'PrimaryPrivateSubnetZoneBCidr'
+                    Description: !Join
+                      - ''
+                      - - 'DB Access from Lambda Functions in '
+                        - !If
+                          - IsPrimaryRegion
+                          - !Ref 'FailoverRegionName'
+                          - !Ref 'PrimaryRegionName'
+                        - b
+                    FromPort: 5432
+                    IpProtocol: tcp
+                    ToPort: 5432
+                VpcId: !Join
+                  - ''
+                  - - '{{resolve:ssm:/'
+                    - !Ref 'MainStackName'
+                    - /RegionalVpcId}}
+              Type: AWS::EC2::SecurityGroup
+            DbProxyRole:
+              DependsOn:
+                - AppDbAdminSecret
+              Properties:
+                AssumeRolePolicyDocument:
+                  Statement:
+                    - Action:
+                        - sts:AssumeRole
+                      Effect: Allow
+                      Principal:
+                        Service:
+                          - rds.amazonaws.com
+                ManagedPolicyArns:
+                  - arn:aws:iam::aws:policy/AdministratorAccess
+                Policies:
+                  - PolicyDocument:
+                      Statement:
+                        - Action:
+                            - secretsmanager:GetSecretValue
+                          Effect: Allow
+                          Resource:
+                            - !Ref 'AppDbAdminSecret'
+                    PolicyName: main-policy
+              Type: AWS::IAM::Role
+            DbProxySecurityGroup:
+              Properties:
+                GroupDescription: RDS Proxy Security Group
+                SecurityGroupEgress: []
+                SecurityGroupIngress:
+                  - Description: DB Access from Lambda
+                    FromPort: 5432
+                    IpProtocol: tcp
+                    SourceSecurityGroupId: !Join
+                      - ''
+                      - - '{{resolve:ssm:/'
+                        - !Ref 'MainStackName'
+                        - /LambdaSecurityGroupId}}
+                    ToPort: 5432
+                  - CidrIp: !If
+                      - IsPrimaryRegion
+                      - !Ref 'FailoverPrivateSubnetZoneACidr'
+                      - !Ref 'PrimaryPrivateSubnetZoneACidr'
+                    Description: !Join
+                      - ''
+                      - - 'DB Access from Lambda Functions in '
+                        - !If
+                          - IsPrimaryRegion
+                          - !Ref 'FailoverRegionName'
+                          - !Ref 'PrimaryRegionName'
+                        - a
+                    FromPort: 5432
+                    IpProtocol: tcp
+                    ToPort: 5432
+                  - CidrIp: !If
+                      - IsPrimaryRegion
+                      - !Ref 'FailoverPrivateSubnetZoneBCidr'
+                      - !Ref 'PrimaryPrivateSubnetZoneBCidr'
+                    Description: !Join
+                      - ''
+                      - - 'DB Access from Lambda Functions in '
+                        - !If
+                          - IsPrimaryRegion
+                          - !Ref 'FailoverRegionName'
+                          - !Ref 'PrimaryRegionName'
+                        - b
+                    FromPort: 5432
+                    IpProtocol: tcp
+                    ToPort: 5432
+                VpcId: !Join
+                  - ''
+                  - - '{{resolve:ssm:/'
+                    - !Ref 'MainStackName'
+                    - /RegionalVpcId}}
+              Type: AWS::EC2::SecurityGroup
+            DemoDbSubnetGroup:
+              Properties:
+                DBSubnetGroupDescription: Demo Database Subnets
+                DBSubnetGroupName: !Join
+                  - ''
+                  - - !Ref 'AWS::StackName'
+                    - !Join
+                      - ''
+                      - !Split
+                        - subnet-
+                        - !Join
+                          - '-'
+                          - - !Join
+                              - ''
+                              - - '{{resolve:ssm:/'
+                                - !Ref 'MainStackName'
+                                - /
+                                - Private
+                                - SubnetZoneAId}}
+                            - !Join
+                              - ''
+                              - - '{{resolve:ssm:/'
+                                - !Ref 'MainStackName'
+                                - /
+                                - Private
+                                - SubnetZoneAId}}
+                SubnetIds:
+                  - !Join
+                    - ''
+                    - - '{{resolve:ssm:/'
+                      - !Ref 'MainStackName'
+                      - /
+                      - Private
+                      - SubnetZoneAId}}
+                  - !Join
+                    - ''
+                    - - '{{resolve:ssm:/'
+                      - !Ref 'MainStackName'
+                      - /
+                      - Private
+                      - SubnetZoneBId}}
+              Type: AWS::RDS::DBSubnetGroup
+            FailoverAppCluster:
+              Condition: IsFailoverRegion
+              DependsOn:
+                - AppDbSubnetGroup
+                - PrimaryRegionDbExportRetriever
+              Properties:
+                BackupRetentionPeriod: 30
+                DBSubnetGroupName: !Ref 'AppDbSubnetGroup'
+                DeletionProtection: false
+                EnableIAMDatabaseAuthentication: false
+                Engine: aurora-postgresql
+                EngineMode: provisioned
+                EngineVersion: '13.18'
+                GlobalClusterIdentifier: !GetAtt 'PrimaryRegionDbExportRetriever.GlobalAppDbClusterIdentifier'
+                KmsKeyId: !If
+                  - IsPrimaryRegion
+                  - !Ref 'KMSKey'
+                  - !Ref 'KMSKeyReplica'
+                Port: 5432
+                RestoreType: copy-on-write
+                StorageEncrypted: true
+                VpcSecurityGroupIds:
+                  - !Ref 'DbClusterSecurityGroup'
+              Type: AWS::RDS::DBCluster
+            FailoverAppDbAdminSecretAttachment:
+              Condition: IsFailoverRegion
+              DependsOn:
+                - AppDbAdminSecret
+                - FailoverAppCluster
+              Properties:
+                SecretId: !Ref 'AppDbAdminSecret'
+                TargetId: !Ref 'FailoverAppCluster'
+                TargetType: AWS::RDS::DBCluster
+              Type: AWS::SecretsManager::SecretTargetAttachment
+            FailoverAppInstance1:
+              Condition: IsFailoverRegion
+              DependsOn:
+                - AppDbSubnetGroup
+                - FailoverAppCluster
+                - AppDbClusterDeleter
+              Properties:
+                AllowMajorVersionUpgrade: false
+                AutoMinorVersionUpgrade: true
+                DBClusterIdentifier: !Ref 'FailoverAppCluster'
+                DBInstanceClass: db.r6g.large
+                EnablePerformanceInsights: false
+                Engine: aurora-postgresql
+                MultiAZ: false
+              Type: AWS::RDS::DBInstance
+            FailoverAppInstance2:
+              Condition: IsFailoverRegion
+              DependsOn:
+                - AppDbSubnetGroup
+                - FailoverAppCluster
+                - AppDbClusterDeleter
+              Properties:
+                AllowMajorVersionUpgrade: false
+                AutoMinorVersionUpgrade: true
+                DBClusterIdentifier: !Ref 'FailoverAppCluster'
+                DBInstanceClass: db.r6g.large
+                EnablePerformanceInsights: false
+                Engine: aurora-postgresql
+                MultiAZ: false
+              Type: AWS::RDS::DBInstance
+            GlobalAppDbClusterIdentifierParam:
+              Condition: ''
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'Global App DB Cluster Identifier for '
+                    - !Ref 'AWS::StackName'
+                    - ' stack'
+                Name: !Join
+                  - ''
+                  - - /
+                    - !Ref 'MainStackName'
+                    - /
+                    - GlobalAppDbClusterIdentifier
+                Tier: Standard
+                Type: String
+                Value: !GetAtt 'PrimaryRegionDbExportRetriever.GlobalAppDbClusterIdentifier'
+              Type: AWS::SSM::Parameter
+            KMSKey:
+              Condition: IsPrimaryRegion
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'Muli-Region KMS Key for '
+                    - !Ref 'AWS::StackName'
+                EnableKeyRotation: true
+                Enabled: true
+                KeyPolicy:
+                  Id: default-key-policy
+                  Statement:
+                    - Action: kms:*
+                      Effect: Allow
+                      Principal:
+                        AWS: !Join
+                          - ''
+                          - - 'arn:aws:iam::'
+                            - !Ref 'AWS::AccountId'
+                            - :root
+                      Resource: '*'
+                      Sid: Enable IAM User Permissions
+                  Version: '2012-10-17'
+                MultiRegion: true
+              Type: AWS::KMS::Key
+            KMSKeyReplica:
+              Condition: IsFailoverRegion
+              Properties:
+                Enabled: true
+                KeyPolicy:
+                  Id: default-key-policy
+                  Statement:
+                    - Action: kms:*
+                      Effect: Allow
+                      Principal:
+                        AWS: !Join
+                          - ''
+                          - - 'arn:aws:iam::'
+                            - !Ref 'AWS::AccountId'
+                            - :root
+                      Resource: '*'
+                      Sid: Enable IAM User Permissions
+                  Version: '2012-10-17'
+                PrimaryKeyArn: !GetAtt 'PrimaryRegionCmkRetriever.RegionalKmsKeyArn'
+              Type: AWS::KMS::ReplicaKey
+            PrimaryRegionCmkRetriever:
+              Condition: IsFailoverRegion
+              Properties:
+                Properties:
+                  ExportPrefix: !Ref 'MainStackName'
+                  Region: !Ref 'PrimaryRegionName'
+                  Version: 1.05
+                ServiceToken: !Join
+                  - ''
+                  - - '{{resolve:ssm:/'
+                    - !Ref 'MainStackName'
+                    - /RegionalCfnExportRetrieverArn}}
+                Type: Custom::GetCFNExports
+                Version: '1.0'
+              Type: AWS::CloudFormation::CustomResource
+            PrimaryRegionDbExportRetriever:
+              Properties:
+                Properties:
+                  ExportPrefix: !Ref 'MainStackName'
+                  Region: !Ref 'PrimaryRegionName'
+                  Version: 1.04
+                ServiceToken: !Join
+                  - ''
+                  - - '{{resolve:ssm:/'
+                    - !Ref 'MainStackName'
+                    - /RegionalCfnExportRetrieverArn}}
+                Type: Custom::GetCFNExports
+                Version: '1.0'
+              Type: AWS::CloudFormation::CustomResource
+            RdsClusterDeleter:
+              Condition: IsFailoverRegion
+              DependsOn:
+                - RdsClusterDeleterRole
+              Properties:
+                Architectures:
+                  - x86_64
+                Code:
+                  ZipFile: "import sys\nsys.path.append('/opt')\n\nimport os\nimport json\nimport time\nimport boto3\nimport cfnresponse\nfrom botocore.exceptions import ClientError as boto3_client_error\n\n'''\n\
+                    \    ClusterArn\n    ClusterIdentifier\n'''\ndef handler(event, context):\n    \n    print(json.dumps(event))\n    \n    arguments = event['ResourceProperties']['Properties']\n    operation =\
+                    \ event['ResourceProperties']['Type'].replace('Custom::', '')\n    \n    response_data = {}\n    \n    if event['RequestType'] in ['Delete']:\n        \n        rds_client = boto3.client('rds')\n\
+                    \        \n        try:\n            \n            '''\n                First, we'll get the cluster's current status\n            '''\n            describe_cluster_resp = rds_client.describe_db_clusters(\n\
+                    \                DBClusterIdentifier = arguments['ClusterArn'],\n            )\n            \n            '''\n                If there's a cluster matching this identifier\n            '''\n\
+                    \            if len(describe_cluster_resp) > 0:\n                \n                cluster_status = describe_cluster_resp['DBClusters'][0]['Status']\n                \n                '''\n  \
+                    \                  If the cluster's current status is AVAILABLE\n                '''\n                if cluster_status in ['available']:\n                    \n                    try:\n    \
+                    \                    \n                        '''\n                            We'll try to delete it\n                        '''\n                        rds_client.delete_db_cluster(\n   \
+                    \                         SkipFinalSnapshot = True,\n                            DBClusterIdentifier = arguments['ClusterIdentifier']\n                        )\n                        \n   \
+                    \                     '''\n                            Now, we'll monitor its deletion and respond only after it's successful.\n                        '''\n                        while True:\n\
+                    \                            \n                            try:\n                                \n                                describe_cluster_resp = rds_client.describe_db_clusters(\n  \
+                    \                                  DBClusterIdentifier = arguments['ClusterArn'],\n                                )\n\n                                time.sleep(5)\n                        \
+                    \        \n                            except boto3_client_error as e:\n                                \n                                if e.response['Error']['Code'] == 'DBClusterNotFoundFault':\n\
+                    \                                    return cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data)\n                                \n                                else:\n    \
+                    \                                print('Failed to Retrieve Cluster: ' + str(e.response))\n                                    return cfnresponse.send(event, context, cfnresponse.FAILED, response_data)\n\
+                    \                            \n                    except boto3_client_error as e:\n                        print('Failed to Delete Cluster: ' + str(e.response))\n                        return\
+                    \ cfnresponse.send(event, context, cfnresponse.FAILED, response_data)\n                \n        except boto3_client_error as e:\n            print('Failed to Retrieve Cluster: ' + str(e.response))\n\
+                    \            return cfnresponse.send(event, context, cfnresponse.FAILED, response_data)\n\n    return cfnresponse.send(event, context, cfnresponse.SUCCESS, response_data)"
+                Description: Deletes the failover cluster once the local instances are deleted
+                Handler: index.handler
+                Layers:
+                  - !Join
+                    - ''
+                    - - '{{resolve:ssm:/'
+                      - !Ref 'MainStackName'
+                      - /RegionalLambdaLayerVersionArn}}
+                MemorySize: 128
+                Role: !GetAtt 'RdsClusterDeleterRole.Arn'
+                Runtime: python3.11
+                Timeout: 300
+                TracingConfig:
+                  Mode: PassThrough
+              Type: AWS::Lambda::Function
+            RdsClusterDeleterLogGroup:
+              Condition: IsFailoverRegion
+              DeletionPolicy: Delete
+              DependsOn:
+                - RdsClusterDeleter
+              Properties:
+                LogGroupName: !Join
+                  - ''
+                  - - /aws/lambda/
+                    - !Ref 'RdsClusterDeleter'
+                RetentionInDays: 30
+              Type: AWS::Logs::LogGroup
+            RdsClusterDeleterRole:
+              Condition: IsFailoverRegion
+              DependsOn: []
+              Properties:
+                AssumeRolePolicyDocument:
+                  Statement:
+                    - Action:
+                        - sts:AssumeRole
+                      Effect: Allow
+                      Principal:
+                        Service:
+                          - lambda.amazonaws.com
+                ManagedPolicyArns:
+                  - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+                MaxSessionDuration: 3600
+                Policies:
+                  - PolicyDocument:
+                      Statement:
+                        - Action:
+                            - rds:DeleteDBCluster
+                            - rds:DescribeDBClusters
+                          Effect: Allow
+                          Resource:
+                            - !GetAtt 'FailoverAppCluster.DBClusterArn'
+                          Sid: DescribeAndDeleteDBCluster
+                    PolicyName: main-policy
+              Type: AWS::IAM::Role
+            RegionalAppDbAdminSecretArnParam:
+              Condition: ''
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'App DB Admin Secret ARN for '
+                    - !Ref 'AWS::StackName'
+                    - ' stack'
+                Name: !Join
+                  - ''
+                  - - /
+                    - !Ref 'MainStackName'
+                    - /
+                    - RegionalAppDbAdminSecretArn
+                Tier: Standard
+                Type: String
+                Value: !Ref 'AppDbAdminSecret'
+              Type: AWS::SSM::Parameter
+            RegionalAppDbClusterArnParam:
+              Condition: ''
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'Regional App DB Cluster ARN for '
+                    - !Ref 'AWS::StackName'
+                    - ' stack'
+                Name: !Join
+                  - ''
+                  - - /
+                    - !Ref 'MainStackName'
+                    - /
+                    - RegionalAppDbClusterArn
+                Tier: Standard
+                Type: String
+                Value: !GetAtt 'FailoverAppCluster.DBClusterArn'
+              Type: AWS::SSM::Parameter
+            RegionalAppDbClusterIdentifierParam:
+              Condition: ''
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'Regional App DB Cluster Identifier for '
+                    - !Ref 'AWS::StackName'
+                    - ' stack'
+                Name: !Join
+                  - ''
+                  - - /
+                    - !Ref 'MainStackName'
+                    - /
+                    - RegionalAppDbClusterIdentifier
+                Tier: Standard
+                Type: String
+                Value: !Ref 'FailoverAppCluster'
+              Type: AWS::SSM::Parameter
+            RegionalAppDbClusterReaderEndpointParam:
+              Condition: ''
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'App DB Cluster Reader Endpoint for '
+                    - !Ref 'AWS::StackName'
+                    - ' stack'
+                Name: !Join
+                  - ''
+                  - - /
+                    - !Ref 'MainStackName'
+                    - /
+                    - RegionalAppDbClusterReaderEndpoint
+                Tier: Standard
+                Type: String
+                Value: !GetAtt 'FailoverAppCluster.ReadEndpoint.Address'
+              Type: AWS::SSM::Parameter
+            RegionalAppDbClusterWriterEndpointParam:
+              Condition: ''
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'App DB Cluster Writer Endpoint for '
+                    - !Ref 'AWS::StackName'
+                    - ' stack'
+                Name: !Join
+                  - ''
+                  - - /
+                    - !Ref 'MainStackName'
+                    - /
+                    - RegionalAppDbClusterWriterEndpoint
+                Tier: Standard
+                Type: String
+                Value: !GetAtt 'FailoverAppCluster.Endpoint.Address'
+              Type: AWS::SSM::Parameter
+            RegionalAppDbProxyArnParam:
+              Condition: ''
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'RDS Proxy ARN for '
+                    - !Ref 'AWS::StackName'
+                    - ' stack'
+                Name: !Join
+                  - ''
+                  - - /
+                    - !Ref 'MainStackName'
+                    - /
+                    - RegionalAppDbProxyArn
+                Tier: Standard
+                Type: String
+                Value: !GetAtt 'AppDbProxy.DBProxyArn'
+              Type: AWS::SSM::Parameter
+            RegionalAppDbProxyNameParam:
+              Condition: ''
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'App DB Proxy name for '
+                    - !Ref 'AWS::StackName'
+                    - ' stack'
+                Name: !Join
+                  - ''
+                  - - /
+                    - !Ref 'MainStackName'
+                    - /
+                    - RegionalAppDbProxyName
+                Tier: Standard
+                Type: String
+                Value: !Ref 'AppDbProxy'
+              Type: AWS::SSM::Parameter
+            RegionalAppDbProxyPortParam:
+              Condition: ''
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'RDS Proxy port for '
+                    - !Ref 'AWS::StackName'
+                    - ' stack'
+                Name: !Join
+                  - ''
+                  - - /
+                    - !Ref 'MainStackName'
+                    - /
+                    - RegionalAppDbProxyPort
+                Tier: Standard
+                Type: String
+                Value: !GetAtt 'FailoverAppCluster.Endpoint.Port'
+              Type: AWS::SSM::Parameter
+            RegionalAppDbProxyReaderEndpointParam:
+              Condition: ''
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'RDS Proxy reader endpoint for '
+                    - !Ref 'AWS::StackName'
+                    - ' stack'
+                Name: !Join
+                  - ''
+                  - - /
+                    - !Ref 'MainStackName'
+                    - /
+                    - RegionalAppDbProxyReaderEndpoint
+                Tier: Standard
+                Type: String
+                Value: !GetAtt 'AppDbProxyReaderEndpoint.Endpoint'
+              Type: AWS::SSM::Parameter
+            RegionalAppDbProxyWriterEndpointParam:
+              Condition: ''
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'RDS Proxy writer endpoint for '
+                    - !Ref 'AWS::StackName'
+                    - ' stack'
+                Name: !Join
+                  - ''
+                  - - /
+                    - !Ref 'MainStackName'
+                    - /
+                    - RegionalAppDbProxyWriterEndpoint
+                Tier: Standard
+                Type: String
+                Value: !GetAtt 'AppDbProxy.Endpoint'
+              Type: AWS::SSM::Parameter
+            RegionalDemoDbAdminSecretArnParam:
+              Condition: ''
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'Demo DB Admin Secret ARN for '
+                    - !Ref 'AWS::StackName'
+                    - ' stack'
+                Name: !Join
+                  - ''
+                  - - /
+                    - !Ref 'MainStackName'
+                    - /
+                    - RegionalDemoDbAdminSecretArn
+                Tier: Standard
+                Type: String
+                Value: !Join
+                  - ':'
+                  - - arn
+                    - !Ref 'AWS::Partition'
+                    - secretsmanager
+                    - !Ref 'AWS::Region'
+                    - !Ref 'AWS::AccountId'
+                    - secret
+                    - !Select
+                      - 6
+                      - !Split
+                        - ':'
+                        - !GetAtt 'PrimaryRegionDbExportRetriever.DemoDbAdminSecretArn'
+              Type: AWS::SSM::Parameter
+            RegionalDemoDbClusterReaderEndpointParam:
+              Condition: ''
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'Demo DB Cluster Reader Endpoint for '
+                    - !Ref 'AWS::StackName'
+                    - ' stack'
+                Name: !Join
+                  - ''
+                  - - /
+                    - !Ref 'MainStackName'
+                    - /
+                    - RegionalDemoDbClusterReaderEndpoint
+                Tier: Standard
+                Type: String
+                Value: !GetAtt 'PrimaryRegionDbExportRetriever.RegionalDemoDbClusterReaderEndpoint'
+              Type: AWS::SSM::Parameter
+            RegionalDemoDbClusterWriterEndpointParam:
+              Condition: ''
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'Demo DB Cluster Writer Endpoint for '
+                    - !Ref 'AWS::StackName'
+                    - ' stack'
+                Name: !Join
+                  - ''
+                  - - /
+                    - !Ref 'MainStackName'
+                    - /
+                    - RegionalDemoDbClusterWriterEndpoint
+                Tier: Standard
+                Type: String
+                Value: !GetAtt 'PrimaryRegionDbExportRetriever.RegionalDemoDbClusterWriterEndpoint'
+              Type: AWS::SSM::Parameter
+            RegionalKmsKeyArnParam:
+              Condition: ''
+              Properties:
+                Description: !Join
+                  - ''
+                  - - 'Regional KMS Key ARN for '
+                    - !Ref 'AWS::StackName'
+                    - ' stack'
+                Name: !Join
+                  - ''
+                  - - /
+                    - !Ref 'MainStackName'
+                    - /
+                    - RegionalKmsKeyArn
+                Tier: Standard
+                Type: String
+                Value: !If
+                  - IsPrimaryRegion
+                  - !GetAtt 'KMSKey.Arn'
+                  - !GetAtt 'KMSKeyReplica.Arn'
+              Type: AWS::SSM::Parameter
+          Transform:
+            Name: AWS::SecretsManager-2020-07-23
+      Type: AWS::CloudFormation::StackSet
+    FailoverHandlersStackSet:
     DependsOn:
       - StackSetExecutionRole
       - StackSetAdministrationRole
