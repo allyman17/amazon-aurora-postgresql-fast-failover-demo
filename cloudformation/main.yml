@@ -5599,53 +5599,31 @@ Resources:
             PublicHostedZoneId:
               Description: The ID of the public Route 53 Hosted Zone
               Type: String
-
           Resources:
             GlobalAcmCertificateFunction:
               Properties:
                 Code:
                   ZipFile: |
-                    import boto3
-                    import cfnresponse
-                    import time
-
-                    def handler(event, context):
-                        props = event['ResourceProperties']
-                        acm = boto3.client('acm', region_name='us-east-1')
-                        r53 = boto3.client('route53')
-                        
-                        try:
-                            if event['RequestType'] in ['Create', 'Update']:
-                                cert_arn = create_certificate(acm, r53, props)
-                                cfnresponse.send(event, context, cfnresponse.SUCCESS, 
-                                    {'Arn': cert_arn})
-                            elif event['RequestType'] == 'Delete':
-                                if 'PhysicalResourceId' in event:
-                                    acm.delete_certificate(CertificateArn=event['PhysicalResourceId'])
-                                cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
-                        except Exception as e:
-                            print(f"Error: {str(e)}")
-                            cfnresponse.send(event, context, cfnresponse.FAILED, {})
-
                     def create_certificate(acm, r53, props):
                         cert = acm.request_certificate(
                             DomainName=f"dashboard.{props['DomainName']}",
                             ValidationMethod='DNS'
                         )
                         
-                        waiter = acm.get_waiter('certificate_validated')
+                        # Wait for validation records to be available
                         for _ in range(30):
                             try:
-                                cert_metadata = acm.describe_certificate(
-                                    CertificateArn=cert['CertificateArn'])
-                                if 'DomainValidationOptions' in cert_metadata['Certificate']:
+                                cert_metadata = acm.describe_certificate(CertificateArn=cert['CertificateArn'])
+                                validation_options = cert_metadata['Certificate']['DomainValidationOptions']
+                                if validation_options and 'ResourceRecord' in validation_options[0]:
                                     break
                                 time.sleep(2)
-                            except:
+                            except Exception:
                                 time.sleep(2)
                         
+                        # Create DNS validation records
                         for validation in cert_metadata['Certificate']['DomainValidationOptions']:
-                            if validation['ValidationMethod'] == 'DNS':
+                            if validation.get('ResourceRecord'):
                                 r53.change_resource_record_sets(
                                     HostedZoneId=props['HostedZoneId'],
                                     ChangeBatch={
@@ -5663,13 +5641,13 @@ Resources:
                                     }
                                 )
                         
+                        # Wait for validation
                         waiter.wait(
                             CertificateArn=cert['CertificateArn'],
                             WaiterConfig={'Delay': 5, 'MaxAttempts': 60}
                         )
                         
                         return cert['CertificateArn']
-
                 Handler: index.handler
                 Role: !GetAtt 'GlobalAcmCertificateFunctionRole.Arn'
                 Runtime: python3.11
