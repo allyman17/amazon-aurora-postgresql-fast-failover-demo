@@ -7047,7 +7047,7 @@ Resources:
           Transform:
             Name: AWS::SecretsManager-2020-07-23
       Type: AWS::CloudFormation::StackSet
-    FailoverHandlersStackSet:
+  FailoverHandlersStackSet:
     DependsOn:
       - StackSetExecutionRole
       - StackSetAdministrationRole
