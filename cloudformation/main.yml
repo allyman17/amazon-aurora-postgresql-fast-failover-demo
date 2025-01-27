@@ -5604,6 +5604,10 @@ Resources:
               Properties:
                 Code:
                   ZipFile: |
+                    import boto3
+                    import time
+                    import json
+
                     def create_certificate(acm, r53, props):
                         cert = acm.request_certificate(
                             DomainName=f"dashboard.{props['DomainName']}",
@@ -5642,12 +5646,46 @@ Resources:
                                 )
                         
                         # Wait for validation
+                        waiter = acm.get_waiter('certificate_validated')
                         waiter.wait(
                             CertificateArn=cert['CertificateArn'],
                             WaiterConfig={'Delay': 5, 'MaxAttempts': 60}
                         )
                         
                         return cert['CertificateArn']
+
+                    def handler(event, context):
+                        try:
+                            # Initialize AWS clients
+                            acm = boto3.client('acm')
+                            r53 = boto3.client('route53')
+                            
+                            # Extract properties from the event
+                            props = event['ResourceProperties']
+                            
+                            # Handle different CloudFormation stack events
+                            if event['RequestType'] in ['Create', 'Update']:
+                                certificate_arn = create_certificate(acm, r53, props)
+                                return {
+                                    'Status': 'SUCCESS',
+                                    'PhysicalResourceId': certificate_arn,
+                                    'Data': {
+                                        'CertificateArn': certificate_arn
+                                    }
+                                }
+                            elif event['RequestType'] == 'Delete':
+                                # Optional: Add cleanup logic here if needed
+                                return {
+                                    'Status': 'SUCCESS',
+                                    'PhysicalResourceId': event.get('PhysicalResourceId', 'no-id')
+                                }
+                                
+                        except Exception as e:
+                            return {
+                                'Status': 'FAILED',
+                                'Reason': str(e),
+                                'PhysicalResourceId': event.get('PhysicalResourceId', 'no-id')
+                            }
                 Handler: index.handler
                 Role: !GetAtt 'GlobalAcmCertificateFunctionRole.Arn'
                 Runtime: python3.11
